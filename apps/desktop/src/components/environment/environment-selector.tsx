@@ -19,7 +19,7 @@ export function EnvironmentSelector() {
 
   if (environments.length === 0) {
     return (
-      <p className="text-xs text-[#52525b]">
+      <p className="text-xs text-[var(--color-text-dimmed)]">
         No environments found
       </p>
     );
@@ -31,7 +31,7 @@ export function EnvironmentSelector() {
       onChange={(e) =>
         setActiveEnvironment(e.target.value || null)
       }
-      className="w-full rounded bg-[#1c1c1f] px-2 py-1.5 text-xs text-[#e4e4e7] outline-none focus:ring-1 focus:ring-blue-500"
+      className="w-full rounded bg-[var(--color-elevated)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-blue-500"
     >
       <option value="">No Environment</option>
       {environments.map((env) => (

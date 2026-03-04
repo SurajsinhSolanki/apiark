@@ -1,4 +1,5 @@
 pub mod client;
+pub mod curl;
 pub mod error_classifier;
 pub mod interpolation;
 pub mod request_builder;

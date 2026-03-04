@@ -3,12 +3,18 @@ import { useCollectionStore } from "@/stores/collection-store";
 import { CollectionTree } from "./collection-tree";
 import { EnvironmentSelector } from "@/components/environment/environment-selector";
 import { HistoryPanel } from "@/components/history/history-panel";
-import { FolderOpen, ChevronDown, ChevronRight } from "lucide-react";
+import { FolderOpen, ChevronDown, ChevronRight, Settings } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { useSettingsStore } from "@/stores/settings-store";
 
 type SidebarSection = "collections" | "environments" | "history";
 
-export function CollectionSidebar() {
+interface CollectionSidebarProps {
+  onOpenSettings?: () => void;
+}
+
+export function CollectionSidebar({ onOpenSettings }: CollectionSidebarProps) {
+  const sidebarWidth = useSettingsStore((s) => s.settings.sidebarWidth);
   const { collections, openCollection } = useCollectionStore();
   const [expandedSections, setExpandedSections] = useState<Set<SidebarSection>>(
     new Set(["collections", "environments"]),
@@ -38,10 +44,22 @@ export function CollectionSidebar() {
   };
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-[#2a2a2e] bg-[#141416]">
+    <aside
+      className="flex shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]"
+      style={{ width: `${sidebarWidth}px` }}
+    >
       {/* Header */}
-      <div className="flex h-12 items-center justify-between border-b border-[#2a2a2e] px-4">
-        <span className="text-lg font-semibold text-[#3b82f6]">ApiArk</span>
+      <div className="flex h-12 items-center justify-between border-b border-[var(--color-border)] px-4">
+        <span className="text-lg font-semibold text-[var(--color-accent)]">ApiArk</span>
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
+            title="Settings (Ctrl+,)"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Scrollable content */}
@@ -50,7 +68,7 @@ export function CollectionSidebar() {
         <div>
           <button
             onClick={() => toggleSection("collections")}
-            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[#71717a] hover:text-[#a1a1aa]"
+            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
           >
             {expandedSections.has("collections") ? (
               <ChevronDown className="h-3 w-3" />
@@ -64,12 +82,12 @@ export function CollectionSidebar() {
             <div className="px-1 pb-2">
               {collections.length === 0 ? (
                 <div className="px-3 py-4 text-center">
-                  <p className="mb-3 text-xs text-[#52525b]">
+                  <p className="mb-3 text-xs text-[var(--color-text-dimmed)]">
                     No collections open
                   </p>
                   <button
                     onClick={handleOpenFolder}
-                    className="flex w-full items-center justify-center gap-1.5 rounded bg-[#1c1c1f] px-3 py-2 text-xs text-[#a1a1aa] hover:bg-[#2a2a2e] hover:text-[#e4e4e7]"
+                    className="flex w-full items-center justify-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                   >
                     <FolderOpen className="h-3.5 w-3.5" />
                     Open Folder
@@ -91,7 +109,7 @@ export function CollectionSidebar() {
                   ))}
                   <button
                     onClick={handleOpenFolder}
-                    className="mt-1 flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs text-[#52525b] hover:text-[#a1a1aa]"
+                    className="mt-1 flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs text-[var(--color-text-dimmed)] hover:text-[var(--color-text-secondary)]"
                   >
                     <FolderOpen className="h-3 w-3" />
                     Open Another
@@ -103,10 +121,10 @@ export function CollectionSidebar() {
         </div>
 
         {/* Environment section */}
-        <div className="border-t border-[#2a2a2e]">
+        <div className="border-t border-[var(--color-border)]">
           <button
             onClick={() => toggleSection("environments")}
-            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[#71717a] hover:text-[#a1a1aa]"
+            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
           >
             {expandedSections.has("environments") ? (
               <ChevronDown className="h-3 w-3" />
@@ -123,10 +141,10 @@ export function CollectionSidebar() {
         </div>
 
         {/* History section */}
-        <div className="border-t border-[#2a2a2e]">
+        <div className="border-t border-[var(--color-border)]">
           <button
             onClick={() => toggleSection("history")}
-            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[#71717a] hover:text-[#a1a1aa]"
+            className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
           >
             {expandedSections.has("history") ? (
               <ChevronDown className="h-3 w-3" />

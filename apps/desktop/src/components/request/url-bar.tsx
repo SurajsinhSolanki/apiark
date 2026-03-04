@@ -35,15 +35,15 @@ export function UrlBar() {
   };
 
   return (
-    <div className="flex items-center gap-2 border-b border-[#2a2a2e] bg-[#141416] px-3 py-2">
+    <div className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
       {/* Method selector */}
       <select
         value={tab.method}
         onChange={(e) => setMethod(e.target.value as HttpMethod)}
-        className={`${METHOD_COLORS[tab.method]} cursor-pointer rounded bg-[#1c1c1f] px-2 py-1.5 text-sm font-semibold outline-none focus:ring-1 focus:ring-blue-500`}
+        className={`${METHOD_COLORS[tab.method]} cursor-pointer rounded bg-[var(--color-elevated)] px-2 py-1.5 text-sm font-semibold outline-none focus:ring-1 focus:ring-blue-500`}
       >
         {METHODS.map((m) => (
-          <option key={m} value={m} className="text-[#e4e4e7]">
+          <option key={m} value={m} className="text-[var(--color-text-primary)]">
             {m}
           </option>
         ))}
@@ -56,7 +56,7 @@ export function UrlBar() {
         onChange={(e) => setUrl(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="https://api.example.com/endpoint"
-        className="flex-1 rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+        className="flex-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
       />
 
       {/* Send button */}

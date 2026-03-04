@@ -159,6 +159,44 @@ export interface HistoryEntry {
   requestJson: string;
 }
 
+// ── Parsed cURL ──
+
+export interface ParsedCurlRequest {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body: string | null;
+  bodyType: string | null;
+  authBasic: [string, string] | null;
+  verifySsl: boolean;
+  followRedirects: boolean;
+}
+
+// ── Settings ──
+
+export interface AppSettings {
+  theme: "dark" | "light" | "system";
+  proxyUrl: string | null;
+  proxyUsername: string | null;
+  proxyPassword: string | null;
+  verifySsl: boolean;
+  followRedirects: boolean;
+  timeoutMs: number;
+  sidebarWidth: number;
+}
+
+// ── Persisted State ──
+
+export interface PersistedTab {
+  filePath: string;
+  collectionPath: string;
+}
+
+export interface PersistedState {
+  tabs: PersistedTab[];
+  activeTabIndex: number | null;
+}
+
 // ── Tab ──
 
 export interface Tab {

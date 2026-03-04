@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import type {
   SendRequestParams,
   ResponseData,
@@ -7,7 +6,36 @@ import type {
   RequestFile,
   EnvironmentData,
   HistoryEntry,
+  AppSettings,
+  ParsedCurlRequest,
+  PersistedState,
 } from "@apiark/types";
+
+// ── Tauri environment detection ──
+
+// window.__TAURI_INTERNALS__ exists only inside the Tauri webview.
+// When running via plain `pnpm dev` in a browser, invoke is unavailable.
+function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+let _invoke: typeof import("@tauri-apps/api/core").invoke | undefined;
+
+async function getInvoke() {
+  if (!isTauri()) {
+    throw new Error("Not running in Tauri environment. Use `pnpm tauri dev` to run the app.");
+  }
+  if (!_invoke) {
+    const mod = await import("@tauri-apps/api/core");
+    _invoke = mod.invoke;
+  }
+  return _invoke;
+}
+
+async function invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
+  const fn = await getInvoke();
+  return fn<T>(cmd, args);
+}
 
 // ── Error handling ──
 
@@ -136,4 +164,48 @@ export async function searchHistory(query: string): Promise<HistoryEntry[]> {
 
 export async function clearHistory(): Promise<void> {
   return await invoke<void>("clear_history", {});
+}
+
+// ── State Persistence ──
+
+export async function loadPersistedState(): Promise<PersistedState> {
+  return await invoke<PersistedState>("load_persisted_state", {});
+}
+
+export async function savePersistedState(state: PersistedState): Promise<void> {
+  return await invoke<void>("save_persisted_state", { state });
+}
+
+// ── cURL ──
+
+export async function parseCurlCommand(input: string): Promise<ParsedCurlRequest> {
+  return await invoke<ParsedCurlRequest>("parse_curl_command", { input });
+}
+
+export async function exportCurlCommand(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body?: string,
+  authBasic?: [string, string],
+): Promise<string> {
+  return await invoke<string>("export_curl_command", {
+    method,
+    url,
+    headers,
+    body: body ?? null,
+    authBasic: authBasic ?? null,
+  });
+}
+
+// ── Settings ──
+
+export async function getSettings(): Promise<AppSettings> {
+  return await invoke<AppSettings>("get_settings", {});
+}
+
+export async function updateSettings(
+  patch: Partial<AppSettings>,
+): Promise<AppSettings> {
+  return await invoke<AppSettings>("update_settings", { patch });
 }

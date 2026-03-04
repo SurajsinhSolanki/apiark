@@ -13,8 +13,11 @@ import {
   sendRequest,
   readRequestFile,
   saveRequestFile,
+  loadPersistedState,
+  savePersistedState,
 } from "@/lib/tauri-api";
 import { useEnvironmentStore } from "./environment-store";
+import { useSettingsStore } from "./settings-store";
 
 interface TabState {
   tabs: Tab[];
@@ -41,6 +44,10 @@ interface TabState {
   send: () => Promise<void>;
   save: () => Promise<void>;
   clearResponse: () => void;
+
+  // Persistence
+  persistTabs: () => void;
+  restoreTabs: () => Promise<void>;
 }
 
 let tabCounter = 0;
@@ -258,6 +265,16 @@ export const useTabStore = create<TabState>((set, get) => ({
     const envStore = useEnvironmentStore.getState();
     const variables = await envStore.getResolvedVariables();
 
+    // Get network settings
+    const { settings } = useSettingsStore.getState();
+    const proxy = settings.proxyUrl
+      ? {
+          url: settings.proxyUrl,
+          username: settings.proxyUsername ?? undefined,
+          password: settings.proxyPassword ?? undefined,
+        }
+      : undefined;
+
     try {
       const response = await sendRequest(
         {
@@ -267,8 +284,10 @@ export const useTabStore = create<TabState>((set, get) => ({
           params: tab.params.filter((p) => p.key.trim() !== "" && p.enabled),
           body: tab.body.type !== "none" ? tab.body : undefined,
           auth: tab.auth.type !== "none" ? tab.auth : undefined,
-          followRedirects: true,
-          verifySsl: true,
+          proxy,
+          timeoutMs: settings.timeoutMs,
+          followRedirects: settings.followRedirects,
+          verifySsl: settings.verifySsl,
         },
         variables,
         tab.collectionPath ?? undefined,
@@ -310,6 +329,49 @@ export const useTabStore = create<TabState>((set, get) => ({
 
   clearResponse: () => {
     set((state) => updateActiveTab(state, () => ({ response: null, error: null })));
+  },
+
+  persistTabs: () => {
+    const { tabs, activeTabId } = get();
+    // Only persist file-backed tabs
+    const persistedTabs = tabs
+      .filter((t) => t.filePath && t.collectionPath)
+      .map((t) => ({ filePath: t.filePath!, collectionPath: t.collectionPath! }));
+    const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
+    savePersistedState({
+      tabs: persistedTabs,
+      activeTabIndex: activeIndex >= 0 ? activeIndex : null,
+    }).catch((err) => console.error("Failed to persist tabs:", err));
+  },
+
+  restoreTabs: async () => {
+    try {
+      const persisted = await loadPersistedState();
+      if (persisted.tabs.length === 0) return;
+
+      for (const pt of persisted.tabs) {
+        try {
+          const file = await readRequestFile(pt.filePath);
+          const tab = requestFileToTab(file, pt.filePath, pt.collectionPath);
+          set((state) => ({
+            tabs: [...state.tabs, tab],
+            activeTabId: state.activeTabId ?? tab.id,
+          }));
+        } catch {
+          // File may have been deleted, skip it
+        }
+      }
+
+      // Set active tab by index
+      if (persisted.activeTabIndex != null) {
+        const { tabs } = get();
+        if (persisted.activeTabIndex < tabs.length) {
+          set({ activeTabId: tabs[persisted.activeTabIndex].id });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to restore tabs:", err);
+    }
   },
 }));
 

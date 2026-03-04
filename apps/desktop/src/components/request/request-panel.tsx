@@ -33,25 +33,25 @@ export function RequestPanel() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Tab bar */}
-      <div className="flex gap-0 border-b border-[#2a2a2e] bg-[#141416]">
+      <div className="flex gap-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={`px-4 py-2 text-sm transition-colors ${
               activeTab === t.id
-                ? "border-b-2 border-blue-500 text-[#e4e4e7]"
-                : "text-[#71717a] hover:text-[#a1a1aa]"
+                ? "border-b-2 border-blue-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
             }`}
           >
             {t.label}
             {t.id === "params" && params.filter((p) => p.key).length > 0 && (
-              <span className="ml-1 text-xs text-[#52525b]">
+              <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
                 ({params.filter((p) => p.key).length})
               </span>
             )}
             {t.id === "headers" && headers.filter((h) => h.key).length > 0 && (
-              <span className="ml-1 text-xs text-[#52525b]">
+              <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
                 ({headers.filter((h) => h.key).length})
               </span>
             )}
@@ -109,7 +109,7 @@ function BodyEditor({
             className={`rounded px-3 py-1 text-xs transition-colors ${
               body.type === bt.value
                 ? "bg-blue-600 text-white"
-                : "bg-[#1c1c1f] text-[#a1a1aa] hover:text-[#e4e4e7]"
+                : "bg-[var(--color-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             }`}
           >
             {bt.label}
@@ -123,7 +123,7 @@ function BodyEditor({
           value={body.content}
           onChange={(e) => onChange({ ...body, content: e.target.value })}
           placeholder={body.type === "json" ? '{\n  "key": "value"\n}' : ""}
-          className="h-48 w-full resize-y rounded bg-[#1c1c1f] p-3 font-mono text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+          className="h-48 w-full resize-y rounded bg-[var(--color-elevated)] p-3 font-mono text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
           spellCheck={false}
         />
       )}
@@ -169,7 +169,7 @@ function AuthEditor({
               break;
           }
         }}
-        className="rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] outline-none focus:ring-1 focus:ring-blue-500"
+        className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-blue-500"
       >
         <option value="none">No Auth</option>
         <option value="bearer">Bearer Token</option>
@@ -184,7 +184,7 @@ function AuthEditor({
           value={auth.token}
           onChange={(e) => onChange({ ...auth, token: e.target.value })}
           placeholder="Token"
-          className="w-full rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
         />
       )}
 
@@ -195,14 +195,14 @@ function AuthEditor({
             value={auth.username}
             onChange={(e) => onChange({ ...auth, username: e.target.value })}
             placeholder="Username"
-            className="w-full rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
           />
           <input
             type="password"
             value={auth.password}
             onChange={(e) => onChange({ ...auth, password: e.target.value })}
             placeholder="Password"
-            className="w-full rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
       )}
@@ -214,21 +214,21 @@ function AuthEditor({
             value={auth.key}
             onChange={(e) => onChange({ ...auth, key: e.target.value })}
             placeholder="Key name (e.g. X-API-Key)"
-            className="w-full rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
           />
           <input
             type="text"
             value={auth.value}
             onChange={(e) => onChange({ ...auth, value: e.target.value })}
             placeholder="Value"
-            className="w-full rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] placeholder-[#52525b] outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
           />
           <select
             value={auth.addTo}
             onChange={(e) =>
               onChange({ ...auth, addTo: e.target.value as "header" | "query" })
             }
-            className="rounded bg-[#1c1c1f] px-3 py-1.5 text-sm text-[#e4e4e7] outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="header">Header</option>
             <option value="query">Query Param</option>

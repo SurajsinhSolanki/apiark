@@ -18,7 +18,7 @@ export function TabBar() {
   if (tabs.length === 0) return null;
 
   return (
-    <div className="flex items-center border-b border-[#2a2a2e] bg-[#0a0a0b]">
+    <div className="flex items-center border-b border-[var(--color-border)] bg-[var(--color-bg)]">
       <div className="flex flex-1 overflow-x-auto">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;
@@ -26,10 +26,10 @@ export function TabBar() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`group flex shrink-0 items-center gap-1.5 border-r border-[#2a2a2e] px-3 py-1.5 text-sm transition-colors ${
+              className={`group flex shrink-0 items-center gap-1.5 border-r border-[var(--color-border)] px-3 py-1.5 text-sm transition-colors ${
                 isActive
-                  ? "bg-[#141416] text-[#e4e4e7]"
-                  : "bg-[#0a0a0b] text-[#71717a] hover:bg-[#141416] hover:text-[#a1a1aa]"
+                  ? "bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-secondary)]"
               }`}
             >
               <span
@@ -39,14 +39,14 @@ export function TabBar() {
               </span>
               <span className="max-w-[120px] truncate">{tab.name}</span>
               {tab.isDirty && (
-                <span className="h-1.5 w-1.5 rounded-full bg-[#71717a]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-text-muted)]" />
               )}
               <span
                 onClick={(e) => {
                   e.stopPropagation();
                   closeTab(tab.id);
                 }}
-                className="ml-1 rounded p-0.5 opacity-0 hover:bg-[#2a2a2e] group-hover:opacity-100"
+                className="ml-1 rounded p-0.5 opacity-0 hover:bg-[var(--color-border)] group-hover:opacity-100"
               >
                 <X className="h-3 w-3" />
               </span>
@@ -56,7 +56,7 @@ export function TabBar() {
       </div>
       <button
         onClick={newTab}
-        className="shrink-0 p-2 text-[#71717a] hover:text-[#a1a1aa]"
+        className="shrink-0 p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
         title="New Tab (Ctrl+T)"
       >
         <Plus className="h-4 w-4" />

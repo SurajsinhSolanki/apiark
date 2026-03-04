@@ -3,7 +3,7 @@ mod http;
 mod models;
 mod storage;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use commands::collection::{
     create_folder, create_request, delete_item, open_collection, read_request_file, rename_item,
@@ -13,7 +13,11 @@ use commands::environment::{get_resolved_variables, load_environments, save_envi
 use commands::greet;
 use commands::history::{clear_history, delete_history_entry, get_history, search_history, AppState};
 use commands::http::send_request;
+use commands::curl::{export_curl_command, parse_curl_command};
+use commands::settings::{get_settings, update_settings, SettingsState};
+use commands::state::{load_persisted_state, save_persisted_state};
 use storage::history::HistoryDb;
+use storage::settings;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -25,10 +29,11 @@ pub fn run() {
         .init();
 
     // Initialize history database
-    let db_path = dirs::home_dir()
+    let apiark_dir = dirs::home_dir()
         .expect("Could not determine home directory")
-        .join(".apiark")
-        .join("data.db");
+        .join(".apiark");
+
+    let db_path = apiark_dir.join("data.db");
 
     let history_db = match HistoryDb::open(&db_path) {
         Ok(db) => Arc::new(db),
@@ -47,10 +52,20 @@ pub fn run() {
         }
     };
 
+    // Load settings
+    let settings_path = apiark_dir.join("settings.json");
+    let app_settings = settings::load_settings(&settings_path);
+    tracing::info!("Settings loaded (theme: {})", app_settings.theme);
+
     let app_state = AppState { history_db };
+    let settings_state = SettingsState {
+        settings: Mutex::new(app_settings),
+        settings_path,
+    };
 
     tauri::Builder::default()
         .manage(app_state)
+        .manage(settings_state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -75,6 +90,15 @@ pub fn run() {
             search_history,
             clear_history,
             delete_history_entry,
+            // cURL commands
+            parse_curl_command,
+            export_curl_command,
+            // State persistence commands
+            load_persisted_state,
+            save_persisted_state,
+            // Settings commands
+            get_settings,
+            update_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

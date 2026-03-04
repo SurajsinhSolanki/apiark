@@ -136,7 +136,7 @@ function TreeNode({
         <button
           onClick={() => openTab(node.path, collectionPath)}
           onContextMenu={handleContextMenu}
-          className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-[#1c1c1f]"
+          className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-[var(--color-elevated)]"
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
         >
           <span className={`w-9 shrink-0 text-[10px] font-bold ${METHOD_COLORS[node.method]}`}>
@@ -152,11 +152,11 @@ function TreeNode({
                 if (e.key === "Enter") submitRename();
                 if (e.key === "Escape") setRenaming(false);
               }}
-              className="flex-1 rounded bg-[#1c1c1f] px-1 text-sm text-[#e4e4e7] outline-none ring-1 ring-blue-500"
+              className="flex-1 rounded bg-[var(--color-elevated)] px-1 text-sm text-[var(--color-text-primary)] outline-none ring-1 ring-blue-500"
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <span className="truncate text-[#a1a1aa]">{node.name}</span>
+            <span className="truncate text-[var(--color-text-secondary)]">{node.name}</span>
           )}
         </button>
         {contextMenu && (
@@ -182,18 +182,18 @@ function TreeNode({
       <button
         onClick={() => toggleExpand(node.path)}
         onContextMenu={handleContextMenu}
-        className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-[#1c1c1f]"
+        className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-sm hover:bg-[var(--color-elevated)]"
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
       >
         {isExpanded ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#71717a]" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-muted)]" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#71717a]" />
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-muted)]" />
         )}
         {isExpanded ? (
-          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-[#71717a]" />
+          <FolderOpen className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-muted)]" />
         ) : (
-          <Folder className="h-3.5 w-3.5 shrink-0 text-[#71717a]" />
+          <Folder className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-muted)]" />
         )}
         {renaming ? (
           <input
@@ -205,11 +205,11 @@ function TreeNode({
               if (e.key === "Enter") submitRename();
               if (e.key === "Escape") setRenaming(false);
             }}
-            className="flex-1 rounded bg-[#1c1c1f] px-1 text-sm text-[#e4e4e7] outline-none ring-1 ring-blue-500"
+            className="flex-1 rounded bg-[var(--color-elevated)] px-1 text-sm text-[var(--color-text-primary)] outline-none ring-1 ring-blue-500"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="truncate text-[#e4e4e7]">{node.name}</span>
+          <span className="truncate text-[var(--color-text-primary)]">{node.name}</span>
         )}
       </button>
 
@@ -264,15 +264,15 @@ function ContextMenu({
       {/* Backdrop */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
-        className="fixed z-50 min-w-[160px] rounded border border-[#2a2a2e] bg-[#1c1c1f] py-1 shadow-lg"
+        className="fixed z-50 min-w-[160px] rounded border border-[var(--color-border)] bg-[var(--color-elevated)] py-1 shadow-lg"
         style={{ left: x, top: y }}
       >
         {items.map((item) => (
           <button
             key={item.label}
             onClick={item.onClick}
-            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-[#2a2a2e] ${
-              item.danger ? "text-red-400" : "text-[#e4e4e7]"
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-[var(--color-border)] ${
+              item.danger ? "text-red-400" : "text-[var(--color-text-primary)]"
             }`}
           >
             <item.icon className="h-3.5 w-3.5" />
