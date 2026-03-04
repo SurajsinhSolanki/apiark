@@ -3,8 +3,17 @@ mod http;
 mod models;
 mod storage;
 
+use std::sync::Arc;
+
+use commands::collection::{
+    create_folder, create_request, delete_item, open_collection, read_request_file, rename_item,
+    save_request_file,
+};
+use commands::environment::{get_resolved_variables, load_environments, save_environment};
 use commands::greet;
+use commands::history::{clear_history, delete_history_entry, get_history, search_history, AppState};
 use commands::http::send_request;
+use storage::history::HistoryDb;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,12 +24,58 @@ pub fn run() {
         )
         .init();
 
+    // Initialize history database
+    let db_path = dirs::home_dir()
+        .expect("Could not determine home directory")
+        .join(".apiark")
+        .join("data.db");
+
+    let history_db = match HistoryDb::open(&db_path) {
+        Ok(db) => Arc::new(db),
+        Err(e) => {
+            tracing::error!("Failed to open history database: {e}");
+            // Try to recover: rename corrupt DB and create fresh
+            if db_path.exists() {
+                let backup = db_path.with_extension(format!(
+                    "db.corrupt.{}",
+                    chrono::Utc::now().format("%Y%m%d_%H%M%S")
+                ));
+                let _ = std::fs::rename(&db_path, &backup);
+                tracing::info!("Renamed corrupt DB to {}", backup.display());
+            }
+            Arc::new(HistoryDb::open(&db_path).expect("Failed to create fresh history database"))
+        }
+    };
+
+    let app_state = AppState { history_db };
+
     tauri::Builder::default()
+        .manage(app_state)
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
-        .invoke_handler(tauri::generate_handler![greet, send_request])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            send_request,
+            // Collection commands
+            open_collection,
+            read_request_file,
+            save_request_file,
+            create_request,
+            create_folder,
+            delete_item,
+            rename_item,
+            // Environment commands
+            load_environments,
+            save_environment,
+            get_resolved_variables,
+            // History commands
+            get_history,
+            search_history,
+            clear_history,
+            delete_history_entry,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

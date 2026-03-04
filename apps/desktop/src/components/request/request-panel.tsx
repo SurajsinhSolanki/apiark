@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRequestStore } from "@/stores/request-store";
+import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { KeyValueEditor } from "./key-value-editor";
 import type { AuthConfig, BodyType } from "@apiark/types";
 
@@ -23,30 +23,34 @@ const BODY_TYPES: { value: BodyType; label: string }[] = [
 
 export function RequestPanel() {
   const [activeTab, setActiveTab] = useState<Tab>("params");
-  const { params, headers, body, auth, setParams, setHeaders, setBody, setAuth } =
-    useRequestStore();
+  const tab = useActiveTab();
+  const { setParams, setHeaders, setBody, setAuth } = useTabStore();
+
+  if (!tab) return null;
+
+  const { params, headers, body, auth } = tab;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Tab bar */}
       <div className="flex gap-0 border-b border-[#2a2a2e] bg-[#141416]">
-        {TABS.map((tab) => (
+        {TABS.map((t) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
             className={`px-4 py-2 text-sm transition-colors ${
-              activeTab === tab.id
+              activeTab === t.id
                 ? "border-b-2 border-blue-500 text-[#e4e4e7]"
                 : "text-[#71717a] hover:text-[#a1a1aa]"
             }`}
           >
-            {tab.label}
-            {tab.id === "params" && params.filter((p) => p.key).length > 0 && (
+            {t.label}
+            {t.id === "params" && params.filter((p) => p.key).length > 0 && (
               <span className="ml-1 text-xs text-[#52525b]">
                 ({params.filter((p) => p.key).length})
               </span>
             )}
-            {tab.id === "headers" && headers.filter((h) => h.key).length > 0 && (
+            {t.id === "headers" && headers.filter((h) => h.key).length > 0 && (
               <span className="ml-1 text-xs text-[#52525b]">
                 ({headers.filter((h) => h.key).length})
               </span>

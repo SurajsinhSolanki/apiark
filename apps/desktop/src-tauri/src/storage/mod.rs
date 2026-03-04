@@ -1,2 +1,3 @@
-// Storage module — filesystem (YAML) + SQLite operations
-// Will contain: collection, environment, history, settings persistence
+pub mod collection;
+pub mod environment;
+pub mod history;

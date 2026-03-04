@@ -100,26 +100,84 @@ export interface HttpError {
   suggestion?: string;
 }
 
-// ── Collection & Environment (existing, kept for later use) ──
+// ── Collection Tree (matches Rust CollectionNode) ──
 
-export interface RequestConfig {
+export type CollectionNode =
+  | {
+      type: "collection";
+      name: string;
+      path: string;
+      children: CollectionNode[];
+    }
+  | {
+      type: "folder";
+      name: string;
+      path: string;
+      children: CollectionNode[];
+    }
+  | {
+      type: "request";
+      name: string;
+      method: HttpMethod;
+      path: string;
+    };
+
+// ── Request File (on-disk YAML format from Rust) ──
+
+export interface RequestFile {
   name: string;
   method: HttpMethod;
   url: string;
   description?: string;
-  headers?: KeyValuePair[];
-  params?: KeyValuePair[];
-  body?: RequestBody;
+  headers: Record<string, string>;
   auth?: AuthConfig;
+  body?: { type: string; content: string };
+  params?: Record<string, string>;
 }
 
-export interface Environment {
+// ── Environment ──
+
+export interface EnvironmentData {
   name: string;
   variables: Record<string, string>;
-  secrets?: string[];
+  secrets: string[];
 }
 
-export interface Collection {
+// ── History Entry (matches Rust HistoryEntry) ──
+
+export interface HistoryEntry {
+  id: number;
+  method: string;
+  url: string;
+  status?: number;
+  statusText?: string;
+  timeMs?: number;
+  sizeBytes?: number;
+  timestamp: string;
+  collectionPath?: string;
+  requestName?: string;
+  requestJson: string;
+}
+
+// ── Tab ──
+
+export interface Tab {
+  id: string;
   name: string;
-  version: number;
+  filePath: string | null;
+  collectionPath: string | null;
+  isDirty: boolean;
+
+  // Request state
+  method: HttpMethod;
+  url: string;
+  headers: KeyValuePair[];
+  params: KeyValuePair[];
+  body: RequestBody;
+  auth: AuthConfig;
+
+  // Response state
+  response: ResponseData | null;
+  error: HttpError | null;
+  loading: boolean;
 }

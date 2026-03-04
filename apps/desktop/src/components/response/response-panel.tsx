@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRequestStore } from "@/stores/request-store";
+import { useActiveTab } from "@/stores/tab-store";
 import { AlertCircle } from "lucide-react";
 
 type Tab = "body" | "headers" | "cookies";
@@ -19,8 +19,12 @@ function formatSize(bytes: number): string {
 }
 
 export function ResponsePanel() {
-  const { response, error, loading } = useRequestStore();
+  const tab = useActiveTab();
   const [activeTab, setActiveTab] = useState<Tab>("body");
+
+  if (!tab) return null;
+
+  const { response, error, loading } = tab;
 
   // Empty state
   if (!response && !error && !loading) {
@@ -75,23 +79,23 @@ export function ResponsePanel() {
 
       {/* Tabs */}
       <div className="flex gap-0 border-b border-[#2a2a2e] bg-[#141416]">
-        {(["body", "headers", "cookies"] as Tab[]).map((tab) => (
+        {(["body", "headers", "cookies"] as Tab[]).map((t) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+            key={t}
+            onClick={() => setActiveTab(t)}
             className={`px-4 py-2 text-sm capitalize transition-colors ${
-              activeTab === tab
+              activeTab === t
                 ? "border-b-2 border-blue-500 text-[#e4e4e7]"
                 : "text-[#71717a] hover:text-[#a1a1aa]"
             }`}
           >
-            {tab}
-            {tab === "headers" && (
+            {t}
+            {t === "headers" && (
               <span className="ml-1 text-xs text-[#52525b]">
                 ({response.headers.length})
               </span>
             )}
-            {tab === "cookies" && response.cookies.length > 0 && (
+            {t === "cookies" && response.cookies.length > 0 && (
               <span className="ml-1 text-xs text-[#52525b]">
                 ({response.cookies.length})
               </span>

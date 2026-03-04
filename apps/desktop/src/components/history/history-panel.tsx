@@ -1,0 +1,124 @@
+import { useEffect, useState } from "react";
+import type { HttpMethod } from "@apiark/types";
+import { useHistoryStore } from "@/stores/history-store";
+import { useTabStore } from "@/stores/tab-store";
+import { Search, Trash2 } from "lucide-react";
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: "text-green-500",
+  POST: "text-yellow-500",
+  PUT: "text-blue-500",
+  PATCH: "text-purple-500",
+  DELETE: "text-red-500",
+  HEAD: "text-cyan-500",
+  OPTIONS: "text-gray-500",
+};
+
+function statusColor(status?: number): string {
+  if (!status) return "text-[#71717a]";
+  if (status < 300) return "text-green-500";
+  if (status < 400) return "text-yellow-500";
+  return "text-red-500";
+}
+
+function timeAgo(timestamp: string): string {
+  const diff = Date.now() - new Date(timestamp).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+export function HistoryPanel() {
+  const { entries, loading, loadHistory, searchHistory, clearHistory } =
+    useHistoryStore();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      searchHistory(query);
+    } else {
+      loadHistory();
+    }
+  };
+
+  const handleRestore = (entry: typeof entries[0]) => {
+    // Open a new tab and populate with history entry data
+    const { setMethod, setUrl } = useTabStore.getState();
+    useTabStore.getState().newTab();
+    // Small delay to let the tab render
+    setTimeout(() => {
+      setMethod(entry.method as HttpMethod);
+      setUrl(entry.url);
+    }, 0);
+  };
+
+  return (
+    <div className="px-2">
+      {/* Search + clear */}
+      <div className="mb-1 flex items-center gap-1">
+        <div className="flex flex-1 items-center rounded bg-[#1c1c1f] px-2">
+          <Search className="h-3 w-3 text-[#52525b]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search history..."
+            className="w-full bg-transparent px-1.5 py-1 text-xs text-[#e4e4e7] placeholder-[#52525b] outline-none"
+          />
+        </div>
+        {entries.length > 0 && (
+          <button
+            onClick={clearHistory}
+            className="rounded p-1 text-[#52525b] hover:bg-[#2a2a2e] hover:text-red-400"
+            title="Clear history"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+
+      {/* Entries */}
+      {loading ? (
+        <p className="py-2 text-center text-xs text-[#52525b]">Loading...</p>
+      ) : entries.length === 0 ? (
+        <p className="py-2 text-center text-xs text-[#52525b]">
+          {searchQuery ? "No results" : "No history yet"}
+        </p>
+      ) : (
+        <div className="max-h-[300px] overflow-y-auto">
+          {entries.map((entry) => (
+            <button
+              key={entry.id}
+              onClick={() => handleRestore(entry)}
+              className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left hover:bg-[#1c1c1f]"
+            >
+              <span
+                className={`w-9 shrink-0 text-[10px] font-bold ${METHOD_COLORS[entry.method] ?? "text-[#71717a]"}`}
+              >
+                {entry.method}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-xs text-[#a1a1aa]">
+                {entry.url}
+              </span>
+              <span className={`shrink-0 text-[10px] ${statusColor(entry.status ?? undefined)}`}>
+                {entry.status ?? "—"}
+              </span>
+              <span className="shrink-0 text-[10px] text-[#52525b]">
+                {timeAgo(entry.timestamp)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
