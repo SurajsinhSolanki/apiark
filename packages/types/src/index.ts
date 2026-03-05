@@ -560,9 +560,18 @@ export interface PersistedTab {
   collectionPath: string;
 }
 
+export interface WindowState {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  maximized: boolean;
+}
+
 export interface PersistedState {
   tabs: PersistedTab[];
   activeTabIndex: number | null;
+  windowState?: WindowState;
 }
 
 // ── Tab ──

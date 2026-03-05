@@ -70,6 +70,8 @@ md4 = "0.10"
 des = "0.8"
 walkdir = "2"
 rumqttc = "0.24"
+rcgen = "0.13"
+time = "0.3"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

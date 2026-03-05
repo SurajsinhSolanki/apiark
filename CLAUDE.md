@@ -358,7 +358,7 @@ No tool currently delivers ALL of these simultaneously:
 - [x] Local intercepting HTTP/HTTPS proxy (hyper + rcgen + rustls)
 - [x] Real-time traffic log with filtering (domain, method, status, regex)
 - [x] Save captured request to collection / replay / edit & replay
-- [ ] Local CA certificate generation for HTTPS interception
+- [x] Local CA certificate generation for HTTPS interception
 - [x] Passthrough domains configuration
 
 **Security Hardening (§35):**
@@ -412,9 +412,9 @@ No tool currently delivers ALL of these simultaneously:
 
 **Multi-Window (§31):**
 - [x] Tauri v2 multi-window API (`Ctrl+Shift+N`)
-- [ ] Drag tab to detach into new window
+- [x] Drag tab to detach into new window
 - [x] Shared collection/environment state across windows via Tauri events
-- [ ] Window state persistence (positions, sizes, tabs per window)
+- [x] Window state persistence (positions, sizes, tabs per window)
 
 ### Phase 4 — AI & Ecosystem (Year 2)
 

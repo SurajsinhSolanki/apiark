@@ -56,7 +56,7 @@ use commands::plugins::{list_plugins, toggle_plugin, uninstall_plugin, install_p
 use commands::mqtt::{mqtt_connect, mqtt_subscribe, mqtt_publish, mqtt_disconnect};
 use commands::socketio::socketio_build_url;
 use plugins::manager::PluginManager;
-use commands::proxy::{proxy_start, proxy_stop, proxy_status, proxy_get_captures, proxy_clear_captures, proxy_set_passthrough};
+use commands::proxy::{proxy_start, proxy_stop, proxy_status, proxy_get_captures, proxy_clear_captures, proxy_set_passthrough, proxy_generate_ca, proxy_get_ca_cert, proxy_ca_exists};
 use proxy::capture::ProxyCaptureManager;
 use mqtt::client::MqttManager;
 use oauth::OAuthTokenStore;
@@ -281,6 +281,9 @@ pub fn run() {
             proxy_get_captures,
             proxy_clear_captures,
             proxy_set_passthrough,
+            proxy_generate_ca,
+            proxy_get_ca_cert,
+            proxy_ca_exists,
             // Plugin commands
             list_plugins,
             toggle_plugin,

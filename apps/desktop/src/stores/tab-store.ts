@@ -79,6 +79,9 @@ interface TabState {
   reloadFromDisk: (tabId: string) => Promise<void>;
   dismissConflict: (tabId: string) => void;
 
+  // Detach tab to new window
+  detachTab: (id: string) => Promise<void>;
+
   // Persistence
   persistTabs: () => void;
   restoreTabs: () => Promise<void>;
@@ -744,6 +747,20 @@ export const useTabStore = create<TabState>((set, get) => ({
     }));
   },
 
+  detachTab: async (id) => {
+    const tab = get().tabs.find((t) => t.id === id);
+    if (!tab || !tab.filePath) return;
+
+    try {
+      const { openNewWindow } = await import("@/lib/tauri-api");
+      await openNewWindow();
+      // Close the tab in the current window — the new window will load its own state
+      get().closeTab(id);
+    } catch (err) {
+      console.error("Failed to detach tab:", err);
+    }
+  },
+
   persistTabs: () => {
     const { tabs, activeTabId } = get();
     // Only persist file-backed tabs (exclude ephemeral WS/SSE tabs)
@@ -751,9 +768,20 @@ export const useTabStore = create<TabState>((set, get) => ({
       .filter((t) => t.filePath && t.collectionPath && t.protocol !== "websocket" && t.protocol !== "sse" && t.protocol !== "grpc")
       .map((t) => ({ filePath: t.filePath!, collectionPath: t.collectionPath! }));
     const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
+
+    // Capture window position/size
+    const windowState = {
+      x: window.screenX,
+      y: window.screenY,
+      width: window.outerWidth,
+      height: window.outerHeight,
+      maximized: false, // Will be updated from Tauri API if needed
+    };
+
     savePersistedState({
       tabs: persistedTabs,
       activeTabIndex: activeIndex >= 0 ? activeIndex : null,
+      windowState,
     }).catch((err) => console.error("Failed to persist tabs:", err));
   },
 

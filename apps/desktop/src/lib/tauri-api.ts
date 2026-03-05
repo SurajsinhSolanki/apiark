@@ -680,3 +680,15 @@ export async function proxyClearCaptures(): Promise<void> {
 export async function proxySetPassthrough(domains: string[]): Promise<void> {
   return await invoke<void>("proxy_set_passthrough", { domains });
 }
+
+export async function proxyGenerateCa(): Promise<string> {
+  return await invoke<string>("proxy_generate_ca", {});
+}
+
+export async function proxyGetCaCert(): Promise<string> {
+  return await invoke<string>("proxy_get_ca_cert", {});
+}
+
+export async function proxyCaExists(): Promise<boolean> {
+  return await invoke<boolean>("proxy_ca_exists", {});
+}

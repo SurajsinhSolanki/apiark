@@ -9,11 +9,35 @@ pub struct PersistedTab {
     pub collection_path: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowState {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+    pub maximized: bool,
+}
+
+impl Default for WindowState {
+    fn default() -> Self {
+        Self {
+            x: 100.0,
+            y: 100.0,
+            width: 1280.0,
+            height: 800.0,
+            maximized: false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PersistedState {
     pub tabs: Vec<PersistedTab>,
     pub active_tab_index: Option<usize>,
+    #[serde(default)]
+    pub window_state: Option<WindowState>,
 }
 
 pub fn load_persisted_state(path: &Path) -> PersistedState {

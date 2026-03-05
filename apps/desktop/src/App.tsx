@@ -60,6 +60,20 @@ function App() {
   useEffect(() => {
     loadSettings();
     restoreTabs();
+
+    // Restore window position/size from persisted state
+    import("@/lib/tauri-api").then(async ({ loadPersistedState }) => {
+      try {
+        const state = await loadPersistedState();
+        if (state.windowState) {
+          const { x, y, width, height } = state.windowState;
+          const { getCurrentWindow, LogicalPosition, LogicalSize } = await import("@tauri-apps/api/window");
+          const win = getCurrentWindow();
+          await win.setPosition(new LogicalPosition(x, y)).catch(() => {});
+          await win.setSize(new LogicalSize(width, height)).catch(() => {});
+        }
+      } catch { /* ignore */ }
+    }).catch(() => {});
   }, [loadSettings, restoreTabs]);
 
   // Show welcome screen on first run

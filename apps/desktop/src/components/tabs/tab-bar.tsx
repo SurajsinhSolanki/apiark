@@ -67,12 +67,20 @@ function SortableTab({
   isActive,
   onActivate,
   onClose,
+  onDetach,
+  onCloseOthers,
+  onCloseAll,
 }: {
   tab: Tab;
   isActive: boolean;
   onActivate: () => void;
   onClose: () => void;
+  onDetach: () => void;
+  onCloseOthers: () => void;
+  onCloseAll: () => void;
 }) {
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const {
     attributes,
     listeners,
@@ -89,34 +97,86 @@ function SortableTab({
     zIndex: isDragging ? 10 : undefined,
   };
 
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [contextMenu]);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+  };
+
   return (
-    <button
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onClick={onActivate}
-      className={`group flex shrink-0 items-center gap-1.5 border-r border-[var(--color-border)] px-3 py-1.5 text-sm transition-colors ${
-        isActive
-          ? "bg-[var(--color-surface)] text-[var(--color-text-primary)]"
-          : "bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-secondary)]"
-      }`}
-    >
-      <TabBadge tab={tab} />
-      <span className="max-w-[120px] truncate">{tab.name}</span>
-      {tab.isDirty && (
-        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-text-muted)]" />
-      )}
-      <span
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
-        className="ml-1 rounded p-0.5 opacity-0 hover:bg-[var(--color-border)] group-hover:opacity-100"
+    <>
+      <button
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        onClick={onActivate}
+        onContextMenu={handleContextMenu}
+        className={`group flex shrink-0 items-center gap-1.5 border-r border-[var(--color-border)] px-3 py-1.5 text-sm transition-colors ${
+          isActive
+            ? "bg-[var(--color-surface)] text-[var(--color-text-primary)]"
+            : "bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-secondary)]"
+        }`}
       >
-        <X className="h-3 w-3" />
-      </span>
-    </button>
+        <TabBadge tab={tab} />
+        <span className="max-w-[120px] truncate">{tab.name}</span>
+        {tab.isDirty && (
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-text-muted)]" />
+        )}
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="ml-1 rounded p-0.5 opacity-0 hover:bg-[var(--color-border)] group-hover:opacity-100"
+        >
+          <X className="h-3 w-3" />
+        </span>
+      </button>
+      {contextMenu && (
+        <div
+          ref={menuRef}
+          className="fixed z-50 min-w-[180px] rounded border border-[var(--color-border)] bg-[var(--color-elevated)] py-1 shadow-lg"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={() => { onClose(); setContextMenu(null); }}
+            className="flex w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => { onCloseOthers(); setContextMenu(null); }}
+            className="flex w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+          >
+            Close Others
+          </button>
+          <button
+            onClick={() => { onCloseAll(); setContextMenu(null); }}
+            className="flex w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+          >
+            Close All
+          </button>
+          <div className="my-1 border-t border-[var(--color-border)]" />
+          <button
+            onClick={() => { onDetach(); setContextMenu(null); }}
+            className="flex w-full px-3 py-1.5 text-left text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
+          >
+            Move to New Window
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -176,7 +236,7 @@ function NewTabDropdown() {
 }
 
 export function TabBar() {
-  const { tabs, activeTabId, setActiveTab, closeTab, reorderTabs } = useTabStore();
+  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs, reorderTabs, detachTab } = useTabStore();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -215,6 +275,9 @@ export function TabBar() {
                 isActive={tab.id === activeTabId}
                 onActivate={() => setActiveTab(tab.id)}
                 onClose={() => closeTab(tab.id)}
+                onDetach={() => detachTab(tab.id)}
+                onCloseOthers={() => closeOtherTabs(tab.id)}
+                onCloseAll={() => closeAllTabs()}
               />
             ))}
           </div>
