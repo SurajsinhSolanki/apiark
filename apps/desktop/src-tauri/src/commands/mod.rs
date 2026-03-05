@@ -1,3 +1,4 @@
+pub mod backup;
 pub mod collection;
 pub mod cookies;
 pub mod curl;

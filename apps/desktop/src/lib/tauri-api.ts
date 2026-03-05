@@ -467,6 +467,29 @@ export async function clearCookieJar(collectionPath: string): Promise<void> {
   return await invoke<void>("clear_cookie_jar", { collectionPath });
 }
 
+// ── Backup ──
+
+export interface ExportSummary {
+  path: string;
+  filesIncluded: string[];
+}
+
+export interface ImportSummary {
+  filesRestored: string[];
+  historyEntries: string | null;
+}
+
+export async function exportAppState(
+  outputPath: string,
+  includeHistory: boolean,
+): Promise<ExportSummary> {
+  return await invoke<ExportSummary>("export_app_state", { outputPath, includeHistory });
+}
+
+export async function importAppState(zipPath: string): Promise<ImportSummary> {
+  return await invoke<ImportSummary>("import_app_state", { zipPath });
+}
+
 // ── Trash ──
 
 export interface TrashItem {

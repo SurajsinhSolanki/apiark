@@ -406,9 +406,9 @@ No tool currently delivers ALL of these simultaneously:
 - [ ] No Lock-In Pledge on website and README
 
 **Backup & State Export (§36):**
-- [ ] Export app state as .zip (settings, window state, history)
-- [ ] Import app state from .zip with merge
-- [ ] Document manual sync approaches (symlink, dotfiles repo)
+- [x] Export app state as .zip (settings, window state, history)
+- [x] Import app state from .zip with merge
+- [x] Document manual sync approaches (symlink, dotfiles repo)
 
 **Multi-Window (§31):**
 - [ ] Tauri v2 multi-window API (`Ctrl+Shift+N`)

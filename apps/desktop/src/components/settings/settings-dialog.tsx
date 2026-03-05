@@ -1,8 +1,10 @@
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Sun, Moon, Monitor, FolderOpen } from "lucide-react";
+import { X, Sun, Moon, Monitor, FolderOpen, Download, Upload } from "lucide-react";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { AppSettings } from "@apiark/types";
-import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
+import { open as openFileDialog, save as saveFileDialog } from "@tauri-apps/plugin-dialog";
+import { exportAppState, importAppState } from "@/lib/tauri-api";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -219,10 +221,103 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 </div>
               )}
             </section>
+
+            {/* Backup Section */}
+            <BackupSection />
           </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+function BackupSection() {
+  const [status, setStatus] = useState<string | null>(null);
+  const [includeHistory, setIncludeHistory] = useState(true);
+
+  const handleExport = async () => {
+    const path = await saveFileDialog({
+      defaultPath: `apiark-backup-${new Date().toISOString().slice(0, 10)}.zip`,
+      filters: [{ name: "ZIP Archive", extensions: ["zip"] }],
+    });
+    if (!path) return;
+
+    try {
+      setStatus("Exporting...");
+      const result = await exportAppState(path, includeHistory);
+      setStatus(`Exported ${result.filesIncluded.length} files to ${result.path}`);
+    } catch (e) {
+      setStatus(`Export failed: ${e}`);
+    }
+  };
+
+  const handleImport = async () => {
+    const path = await openFileDialog({
+      multiple: false,
+      filters: [{ name: "ZIP Archive", extensions: ["zip"] }],
+    });
+    if (!path) return;
+
+    if (!confirm("This will merge settings and replace history. Continue?")) return;
+
+    try {
+      setStatus("Importing...");
+      const result = await importAppState(path);
+      const parts = [...result.filesRestored];
+      if (result.historyEntries) parts.push(`history (${result.historyEntries})`);
+      setStatus(`Restored: ${parts.join(", ")}. Restart app to apply.`);
+    } catch (e) {
+      setStatus(`Import failed: ${e}`);
+    }
+  };
+
+  return (
+    <section>
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+        Backup
+      </h3>
+
+      <div className="mb-3 flex items-center justify-between">
+        <label className="text-sm text-[var(--color-text-secondary)]">
+          Include history in export
+        </label>
+        <button
+          role="switch"
+          aria-checked={includeHistory}
+          onClick={() => setIncludeHistory(!includeHistory)}
+          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+            includeHistory ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
+          }`}
+        >
+          <span
+            className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+              includeHistory ? "translate-x-4.5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export App State
+        </button>
+        <button
+          onClick={handleImport}
+          className="flex items-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Import App State
+        </button>
+      </div>
+
+      {status && (
+        <p className="mt-2 text-xs text-[var(--color-text-muted)]">{status}</p>
+      )}
+    </section>
   );
 }
 
