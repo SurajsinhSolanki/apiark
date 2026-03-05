@@ -51,6 +51,7 @@ use scheduler::monitor::MonitorManager;
 use commands::state::{load_persisted_state, save_persisted_state};
 use commands::trash::{list_trash, restore_from_trash, empty_trash};
 use commands::watcher::{watch_collection, unwatch_collection};
+use commands::updater::{list_rollback_versions, backup_current_binary, clear_backups};
 use commands::window::open_new_window;
 use commands::plugins::{list_plugins, toggle_plugin, uninstall_plugin, install_plugin};
 use commands::mqtt::{mqtt_connect, mqtt_subscribe, mqtt_publish, mqtt_disconnect};
@@ -289,6 +290,10 @@ pub fn run() {
             toggle_plugin,
             uninstall_plugin,
             install_plugin,
+            // Updater/rollback commands
+            list_rollback_versions,
+            backup_current_binary,
+            clear_backups,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

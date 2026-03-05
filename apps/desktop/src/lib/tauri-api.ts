@@ -692,3 +692,17 @@ export async function proxyGetCaCert(): Promise<string> {
 export async function proxyCaExists(): Promise<boolean> {
   return await invoke<boolean>("proxy_ca_exists", {});
 }
+
+// ── Updater / Rollback ──
+
+export async function listRollbackVersions(): Promise<string[]> {
+  return await invoke<string[]>("list_rollback_versions", {});
+}
+
+export async function backupCurrentBinary(): Promise<string> {
+  return await invoke<string>("backup_current_binary", {});
+}
+
+export async function clearBackups(): Promise<void> {
+  return await invoke<void>("clear_backups", {});
+}

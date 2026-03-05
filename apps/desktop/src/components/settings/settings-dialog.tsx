@@ -243,11 +243,23 @@ function UpdateSection({
 }) {
   const [checking, setChecking] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [backups, setBackups] = useState<string[]>([]);
+
+  const loadBackups = async () => {
+    try {
+      const { listRollbackVersions } = await import("@/lib/tauri-api");
+      setBackups(await listRollbackVersions());
+    } catch { /* ignore */ }
+  };
 
   const checkForUpdates = async () => {
     setChecking(true);
     setUpdateStatus(null);
     try {
+      // Backup current binary before checking for updates
+      const { backupCurrentBinary } = await import("@/lib/tauri-api");
+      await backupCurrentBinary().catch(() => {});
+
       const { check } = await import("@tauri-apps/plugin-updater");
       const result = await check();
       if (result) {
@@ -255,12 +267,16 @@ function UpdateSection({
       } else {
         setUpdateStatus("You're up to date");
       }
+      loadBackups();
     } catch (e) {
       setUpdateStatus(`Check failed: ${e}`);
     } finally {
       setChecking(false);
     }
   };
+
+  // Load backups on mount
+  useState(() => { loadBackups(); });
 
   return (
     <section>
@@ -302,6 +318,21 @@ function UpdateSection({
           <span className="text-xs text-[var(--color-text-muted)]">{updateStatus}</span>
         )}
       </div>
+
+      {backups.length > 0 && (
+        <div className="mt-3">
+          <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+            Saved rollback versions ({backups.length})
+          </label>
+          <div className="space-y-1">
+            {backups.map((b) => (
+              <div key={b} className="text-xs text-[var(--color-text-secondary)]">
+                {b}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

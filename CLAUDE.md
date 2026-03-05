@@ -385,7 +385,7 @@ No tool currently delivers ALL of these simultaneously:
 - [x] Tauri v2 updater plugin with signed manifests
 - [x] Stable / Beta / Nightly update channels
 - [x] Non-blocking update banner (never auto-install)
-- [ ] Rollback system (keep last 3 binaries)
+- [x] Rollback system (keep last 3 binaries)
 - [ ] Code signing (macOS, Windows, Linux GPG)
 
 **Internationalization (§23):**
@@ -393,7 +393,7 @@ No tool currently delivers ALL of these simultaneously:
 - [x] All UI strings via `t('key')` (English-only initially)
 - [x] `Intl.DateTimeFormat` / `Intl.NumberFormat` for formatting
 - [x] CSS logical properties for future RTL support
-- [ ] Community translation via Weblate/Crowdin
+- [x] Community translation via Weblate/Crowdin
 
 **Licensing & Feature Gating (§27):**
 - [x] Signed JWT license keys (offline validation)
@@ -431,10 +431,10 @@ No tool currently delivers ALL of these simultaneously:
 - [x] Open specific request links (`apiark://open?collection=...&request=...`)
 
 **Privacy & Legal (§28):**
-- [ ] Privacy policy at `apiark.dev/privacy`
-- [ ] Terms of service at `apiark.dev/terms`
+- [x] Privacy policy at `apiark.dev/privacy`
+- [x] Terms of service at `apiark.dev/terms`
 - [x] SECURITY.md with responsible disclosure process
-- [ ] GDPR compliance documentation
+- [x] GDPR compliance documentation
 
 **Offline Behavior (§33):**
 - [x] Explicit graceful degradation for OAuth (cached tokens work offline)
