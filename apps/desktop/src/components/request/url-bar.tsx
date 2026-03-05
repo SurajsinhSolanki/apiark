@@ -1,4 +1,4 @@
-import { forwardRef, useState, useEffect, useMemo } from "react";
+import { forwardRef, useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import type { HttpMethod } from "@apiark/types";
@@ -75,6 +75,24 @@ export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) 
       .then(setResolvedVars)
       .catch(() => setResolvedVars({}));
   }, [popoverOpen, variableRefs]);
+
+  const sendBtnRef = useRef<HTMLButtonElement>(null);
+
+  const flashSendButton = useCallback((success: boolean) => {
+    const btn = sendBtnRef.current;
+    if (!btn) return;
+    const cls = success ? "animate-flash-green" : "animate-flash-red";
+    btn.classList.add(cls);
+    const onEnd = () => { btn.classList.remove(cls); btn.removeEventListener("animationend", onEnd); };
+    btn.addEventListener("animationend", onEnd);
+  }, []);
+
+  // Watch for response/error changes to flash the send button
+  useEffect(() => {
+    if (!tab || tab.loading) return;
+    if (tab.response) flashSendButton(tab.response.status < 400);
+    else if (tab.error) flashSendButton(false);
+  }, [tab?.response, tab?.error, tab?.loading, flashSendButton]);
 
   if (!tab) return null;
 
@@ -156,6 +174,7 @@ export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) 
       {/* Send button */}
       <div className="relative">
         <button
+          ref={sendBtnRef}
           data-tour="send-btn"
           onClick={send}
           disabled={tab.loading || !tab.url.trim()}

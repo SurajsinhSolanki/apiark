@@ -4,6 +4,7 @@ import { CollectionTree } from "./collection-tree";
 import { EnvironmentSelector } from "@/components/environment/environment-selector";
 import { HistoryPanel } from "@/components/history/history-panel";
 import { FolderOpen, ChevronDown, ChevronRight, Settings, Search, X } from "lucide-react";
+import { EmptyState, FolderPlusIcon } from "@/components/ui/empty-state";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -111,18 +112,20 @@ export function CollectionSidebar({ onOpenSettings, collapsed, envSelectorRef }:
               )}
 
               {collections.length === 0 ? (
-                <div className="px-3 py-4 text-center">
-                  <p className="mb-3 text-xs text-[var(--color-text-dimmed)]">
-                    No collections open
-                  </p>
-                  <button
-                    onClick={handleOpenFolder}
-                    className="flex w-full items-center justify-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
-                  >
-                    <FolderOpen className="h-3.5 w-3.5" />
-                    Open Folder
-                  </button>
-                </div>
+                <EmptyState
+                  icon={<FolderPlusIcon size={36} />}
+                  title="No collections open"
+                  description="Open a folder or import a collection"
+                  action={
+                    <button
+                      onClick={handleOpenFolder}
+                      className="flex items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-accent-hover)]"
+                    >
+                      <FolderOpen className="h-3.5 w-3.5" />
+                      Open Folder
+                    </button>
+                  }
+                />
               ) : (
                 <>
                   {collections.map((collection) => (

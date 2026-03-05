@@ -4,6 +4,8 @@ import { useHistoryStore } from "@/stores/history-store";
 import { useTabStore } from "@/stores/tab-store";
 import { Search, Trash2 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { HistorySkeleton } from "@/components/ui/skeleton";
+import { EmptyState, ClockEmptyIcon } from "@/components/ui/empty-state";
 
 const METHOD_COLORS: Record<string, string> = {
   GET: "text-green-500",
@@ -97,11 +99,17 @@ export function HistoryPanel() {
 
       {/* Entries */}
       {loading ? (
-        <p className="py-2 text-center text-xs text-[var(--color-text-dimmed)]">Loading...</p>
+        <HistorySkeleton />
       ) : entries.length === 0 ? (
-        <p className="py-2 text-center text-xs text-[var(--color-text-dimmed)]">
-          {searchQuery ? "No results" : "No history yet"}
-        </p>
+        searchQuery ? (
+          <p className="py-2 text-center text-xs text-[var(--color-text-dimmed)]">No results</p>
+        ) : (
+          <EmptyState
+            icon={<ClockEmptyIcon size={32} />}
+            title="No history yet"
+            description="Send a request to see it here"
+          />
+        )
       ) : (
         <div
           ref={parentRef}

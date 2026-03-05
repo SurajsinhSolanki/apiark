@@ -228,6 +228,86 @@
   color-scheme: dark;
 }
 
+/* ═══════════════════════════════════════════
+   ANIMATIONS & TRANSITIONS
+   ═══════════════════════════════════════════ */
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-elevated) 25%,
+    var(--color-border) 50%,
+    var(--color-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Toast slide-in */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scale in */
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Status badge pulse */
+@keyframes statusPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* Send button success/error flash */
+@keyframes flashGreen {
+  0% { background-color: var(--color-accent); }
+  30% { background-color: var(--color-success); }
+  100% { background-color: var(--color-accent); }
+}
+
+@keyframes flashRed {
+  0% { background-color: var(--color-accent); }
+  30% { background-color: var(--color-error); }
+  100% { background-color: var(--color-accent); }
+}
+
+.animate-flash-green {
+  animation: flashGreen 600ms ease-out;
+}
+
+.animate-flash-red {
+  animation: flashRed 600ms ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 150ms ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 150ms ease-out;
+}
+
+.animate-status-pulse {
+  animation: statusPulse 300ms ease-out;
+}
+
 /* Glass effect utility */
 .glass {
   backdrop-filter: blur(12px) saturate(150%);

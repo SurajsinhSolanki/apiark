@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useActiveTab, useTabStore } from "@/stores/tab-store";
 import { AlertCircle, ClipboardCopy, Download, Check, ArrowLeftRight, BookmarkPlus } from "lucide-react";
 import { useDiffStore } from "@/stores/diff-store";
+import { EmptyState, RocketIcon } from "@/components/ui/empty-state";
+import { ResponseSkeleton } from "@/components/ui/skeleton";
 import { CodeGenerationPanel } from "./code-generation-panel";
 import { TestResultsPanel } from "./test-results-panel";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -108,21 +110,20 @@ export function ResponsePanel() {
           failedCount={failedCount}
           consoleCount={consoleOutput.length}
         />
-        <div className="flex flex-1 items-center justify-center text-sm text-[var(--color-text-dimmed)]">
-          Send a request to see the response
-        </div>
+        <EmptyState
+          icon={<RocketIcon />}
+          title="Send a request to see the response"
+          description="Use Ctrl+Enter to send quickly"
+        />
       </div>
     );
   }
 
-  // Loading state
+  // Loading state — skeleton shimmer
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-sm text-[var(--color-text-muted)]">
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-          Sending request...
-        </div>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <ResponseSkeleton />
       </div>
     );
   }
@@ -148,7 +149,7 @@ export function ResponsePanel() {
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Status bar */}
       <div className="flex items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2" role="status" aria-live="polite">
-        <span className={`text-sm font-semibold ${statusColor(response.status)}`} aria-label={`Response: ${response.status} ${response.statusText}, ${response.status < 300 ? "success" : response.status < 400 ? "redirect" : response.status < 500 ? "client error" : "server error"}`}>
+        <span className={`text-sm font-semibold animate-status-pulse ${statusColor(response.status)}`} aria-label={`Response: ${response.status} ${response.statusText}, ${response.status < 300 ? "success" : response.status < 400 ? "redirect" : response.status < 500 ? "client error" : "server error"}`}>
           {response.status} {response.statusText}
         </span>
         <span className="text-xs text-[var(--color-text-muted)]">{response.timeMs}ms</span>
@@ -168,7 +169,7 @@ export function ResponsePanel() {
       />
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-3">
+      <div className="flex-1 overflow-auto p-3 animate-fade-in">
         {activeTab === "body" && (
           <div>
             <ResponseBodyActions body={response.body} />
