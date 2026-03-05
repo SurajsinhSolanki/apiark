@@ -21,6 +21,7 @@ import {
 } from "@/lib/tauri-api";
 import { useEnvironmentStore } from "./environment-store";
 import { useSettingsStore } from "./settings-store";
+import { useConsoleStore } from "./console-store";
 
 interface TabState {
   tabs: Tab[];
@@ -560,6 +561,15 @@ export const useTabStore = create<TabState>((set, get) => ({
               : t,
           ),
         });
+
+        // Push script console output to global console
+        const consoleFn = useConsoleStore.getState().log;
+        const reqLabel = tab.name || tab.url || "Request";
+        consoleFn(reqLabel, `${scriptedResponse.status} ${scriptedResponse.statusText} (${scriptedResponse.timeMs}ms)`, "info");
+        for (const entry of scriptedResponse.consoleOutput) {
+          const level = entry.level === "error" ? "error" : entry.level === "warn" ? "warn" : "log";
+          consoleFn(reqLabel, entry.message, level);
+        }
       } else {
         const response = await sendRequest(
           requestParams,
@@ -572,6 +582,8 @@ export const useTabStore = create<TabState>((set, get) => ({
             t.id === activeTabId ? { ...t, response, loading: false } : t,
           ),
         });
+        const reqLabel = tab.name || tab.url || "Request";
+        useConsoleStore.getState().log(reqLabel, `${response.status} ${response.statusText} (${response.timeMs}ms)`, "info");
       }
     } catch (err) {
       set({
@@ -581,6 +593,9 @@ export const useTabStore = create<TabState>((set, get) => ({
             : t,
         ),
       });
+      const reqLabel = tab.name || tab.url || "Request";
+      const httpErr = err as HttpError;
+      useConsoleStore.getState().log(reqLabel, httpErr?.message || String(err), "error");
     }
   },
 

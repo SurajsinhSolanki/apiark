@@ -15,6 +15,7 @@ import { CollectionRunnerDialog } from "@/components/runner/collection-runner-di
 import { ImportDialog } from "@/components/import/import-dialog";
 import type { TabProtocol } from "@apiark/types";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
+import { useConsoleStore } from "@/stores/console-store";
 import { useHistoryStore } from "@/stores/history-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTheme } from "@/hooks/use-theme";
@@ -27,6 +28,7 @@ import { DocsPreviewDialog } from "@/components/docs/docs-preview-dialog";
 import { useDocsStore } from "@/stores/docs-store";
 import { WelcomeScreen } from "@/components/onboarding/welcome-screen";
 import { GuidedTour } from "@/components/onboarding/guided-tour";
+import { ConsoleBottomBar } from "@/components/console/console-panel";
 import { AlertCircle, X, RefreshCw, FileX, GitMerge, Shield } from "lucide-react";
 
 function App() {
@@ -91,6 +93,13 @@ function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
+
+      // Ctrl+` to toggle console (no mod key conflict)
+      if (e.key === "`" && mod) {
+        e.preventDefault();
+        useConsoleStore.getState().toggle();
+        return;
+      }
 
       switch (e.key.toLowerCase()) {
         case "n":
@@ -225,6 +234,9 @@ function App() {
           )}
         </main>
       </div>
+
+      {/* Console panel */}
+      <ConsoleBottomBar />
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <CurlImportDialog open={curlImportOpen} onOpenChange={setCurlImportOpen} />

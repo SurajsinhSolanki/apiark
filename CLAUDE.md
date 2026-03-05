@@ -324,7 +324,7 @@ No tool currently delivers ALL of these simultaneously:
 - [x] `tracing` log rotation (daily, 7 days / 50MB max)
 - [x] SQLite integrity check on startup with auto-recovery
 - [x] Opt-in crash report banner (local JSON files)
-- [ ] In-app Console panel (bottom bar) for logs and script output
+- [x] In-app Console panel (bottom bar) for logs and script output
 - [x] Categorized network errors with suggestions
 
 **Scalability (§25):**
