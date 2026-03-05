@@ -396,10 +396,10 @@ No tool currently delivers ALL of these simultaneously:
 - [ ] Community translation via Weblate/Crowdin
 
 **Licensing & Feature Gating (§27):**
-- [ ] Signed JWT license keys (offline validation)
-- [ ] 14-day grace period after expiry
-- [ ] Pro tier: mock servers, monitors, docs gen, response diff
-- [ ] Team tier: Git UI, team env sharing, SSO/SAML, audit logs
+- [x] Signed JWT license keys (offline validation)
+- [x] 14-day grace period after expiry
+- [x] Pro tier: mock servers, monitors, docs gen, response diff
+- [x] Team tier: Git UI, team env sharing, SSO/SAML, audit logs
 
 **Data Portability (§32):**
 - [x] Schema documentation (`docs/schema.md`) with JSON Schema definitions

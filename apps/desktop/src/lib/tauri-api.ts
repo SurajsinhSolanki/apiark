@@ -539,3 +539,26 @@ export async function updateSettings(
 ): Promise<AppSettings> {
   return await invoke<AppSettings>("update_settings", { patch });
 }
+
+// ── License ──
+
+export interface LicenseStatus {
+  tier: "free" | "pro" | "team";
+  email: string | null;
+  expiresAt: string | null;
+  seats: number | null;
+  gracePeriod: boolean;
+  valid: boolean;
+}
+
+export async function getLicenseStatus(): Promise<LicenseStatus> {
+  return await invoke<LicenseStatus>("get_license_status", {});
+}
+
+export async function activateLicense(key: string): Promise<LicenseStatus> {
+  return await invoke<LicenseStatus>("activate_license", { key });
+}
+
+export async function deactivateLicense(): Promise<LicenseStatus> {
+  return await invoke<LicenseStatus>("deactivate_license", {});
+}

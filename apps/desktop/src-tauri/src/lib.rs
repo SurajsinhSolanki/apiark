@@ -38,6 +38,7 @@ use commands::cookies::{get_cookie_jar, delete_cookie, clear_cookie_jar};
 use commands::grpc::{grpc_load_proto, grpc_call_unary, grpc_disconnect};
 use commands::docs::{generate_docs, preview_docs};
 use commands::backup::{export_app_state, import_app_state};
+use commands::license::{get_license_status, activate_license, deactivate_license, LicenseState};
 use commands::migration::{check_collection_version, migrate_collection};
 use commands::mock::{start_mock_server, stop_mock_server, list_mock_servers};
 use commands::scheduler::{create_monitor, delete_monitor, toggle_monitor, list_monitors, get_monitor_results};
@@ -137,9 +138,13 @@ pub fn run() {
         settings_path,
     };
 
+    let license_state = LicenseState::new(&apiark_dir);
+    tracing::info!("License tier: {:?}", license_state.status.lock().unwrap().tier);
+
     tauri::Builder::default()
         .manage(app_state)
         .manage(settings_state)
+        .manage(license_state)
         .manage(WsManager::new())
         .manage(SseManager::new())
         .manage(OAuthTokenStore::new())
@@ -241,6 +246,10 @@ pub fn run() {
             list_trash,
             restore_from_trash,
             empty_trash,
+            // License commands
+            get_license_status,
+            activate_license,
+            deactivate_license,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
