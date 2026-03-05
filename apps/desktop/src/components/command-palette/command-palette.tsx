@@ -37,6 +37,7 @@ interface CommandPaletteProps {
   onOpenCurlImport: () => void;
   onOpenRunner?: () => void;
   onOpenImport?: () => void;
+  onToggleZen?: () => void;
 }
 
 export function CommandPalette({
@@ -46,6 +47,7 @@ export function CommandPalette({
   onOpenCurlImport,
   onOpenRunner,
   onOpenImport,
+  onToggleZen,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -166,6 +168,33 @@ export function CommandPalette({
         category: "General",
         icon: Play,
         action: () => { onOpenRunner(); onOpenChange(false); },
+      });
+    }
+
+    if (onToggleZen) {
+      cmds.push({
+        id: "zen-mode",
+        label: "Toggle Zen Mode",
+        category: "View",
+        action: () => { onToggleZen(); onOpenChange(false); },
+      });
+    }
+
+    // Pin/Duplicate active tab
+    const activeTabId = useTabStore.getState().activeTabId;
+    if (activeTabId) {
+      const activeT = tabs.find((t) => t.id === activeTabId);
+      cmds.push({
+        id: "pin-tab",
+        label: activeT?.pinned ? "Unpin Tab" : "Pin Tab",
+        category: "Tabs",
+        action: () => { useTabStore.getState().togglePin(activeTabId); onOpenChange(false); },
+      });
+      cmds.push({
+        id: "duplicate-tab",
+        label: "Duplicate Tab",
+        category: "Tabs",
+        action: () => { useTabStore.getState().duplicateTab(activeTabId); onOpenChange(false); },
       });
     }
 

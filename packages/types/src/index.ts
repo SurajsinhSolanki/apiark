@@ -623,6 +623,9 @@ export interface Tab {
   // File watcher conflict state
   conflictState: "external-change" | "deleted" | "merge-conflict" | null;
 
+  // Pinned state
+  pinned: boolean;
+
   // Undo/redo stacks (internal, not persisted)
   undoStack: TabSnapshot[];
   redoStack: TabSnapshot[];

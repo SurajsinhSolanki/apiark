@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { HttpMethod, Tab } from "@apiark/types";
 import { useTabStore } from "@/stores/tab-store";
-import { Plus, X, Globe, Zap, Radio, ChevronDown } from "lucide-react";
+import { Plus, X, Globe, Zap, Radio, ChevronDown, Pin } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -59,6 +59,8 @@ function SortableTab({
   onDetach,
   onCloseOthers,
   onCloseAll,
+  onTogglePin,
+  onDuplicate,
 }: {
   tab: Tab;
   isActive: boolean;
@@ -67,6 +69,8 @@ function SortableTab({
   onDetach: () => void;
   onCloseOthers: () => void;
   onCloseAll: () => void;
+  onTogglePin: () => void;
+  onDuplicate: () => void;
 }) {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -117,20 +121,25 @@ function SortableTab({
             : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
         }`}
       >
+        {tab.pinned && (
+          <Pin className="h-3 w-3 shrink-0 rotate-45 text-[var(--color-accent)]" />
+        )}
         <TabBadge tab={tab} />
         <span className="max-w-[140px] truncate">{tab.name}</span>
         {tab.isDirty && (
           <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)]" />
         )}
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="ml-0.5 rounded-md p-0.5 opacity-0 transition-opacity hover:bg-[var(--color-border)] group-hover:opacity-100"
-        >
-          <X className="h-3 w-3" />
-        </span>
+        {!tab.pinned && (
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="ml-0.5 rounded-md p-0.5 opacity-0 transition-opacity hover:bg-[var(--color-border)] group-hover:opacity-100"
+          >
+            <X className="h-3 w-3" />
+          </span>
+        )}
       </button>
       {contextMenu && (
         <div
@@ -139,6 +148,9 @@ function SortableTab({
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           {[
+            { label: tab.pinned ? "Unpin Tab" : "Pin Tab", action: onTogglePin },
+            { label: "Duplicate Tab", action: onDuplicate },
+            null,
             { label: "Close", action: onClose },
             { label: "Close Others", action: onCloseOthers },
             { label: "Close All", action: onCloseAll },
@@ -220,7 +232,14 @@ function NewTabDropdown() {
 }
 
 export function TabBar() {
-  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs, reorderTabs, detachTab } = useTabStore();
+  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs, reorderTabs, detachTab, togglePin, duplicateTab } = useTabStore();
+
+  // Sort: pinned tabs first, preserving order within each group
+  const sortedTabs = [...tabs].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
+    return 0;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -248,11 +267,11 @@ export function TabBar() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={tabs.map((t) => t.id)}
+          items={sortedTabs.map((t) => t.id)}
           strategy={horizontalListSortingStrategy}
         >
           <div className="flex flex-1 items-end gap-0.5 overflow-x-auto">
-            {tabs.map((tab) => (
+            {sortedTabs.map((tab) => (
               <SortableTab
                 key={tab.id}
                 tab={tab}
@@ -262,6 +281,8 @@ export function TabBar() {
                 onDetach={() => detachTab(tab.id)}
                 onCloseOthers={() => closeOtherTabs(tab.id)}
                 onCloseAll={() => closeAllTabs()}
+                onTogglePin={() => togglePin(tab.id)}
+                onDuplicate={() => duplicateTab(tab.id)}
               />
             ))}
           </div>

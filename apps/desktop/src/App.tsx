@@ -60,6 +60,7 @@ function App() {
   const [aiOpen, setAiOpen] = useState(false);
   const [activeView, setActiveView] = useState<ActivityView>("collections");
   const [sidePanelVisible, setSidePanelVisible] = useState(true);
+  const [zenMode, setZenMode] = useState(false);
   const urlBarRef = useRef<HTMLInputElement>(null);
   const envSelectorRef = useRef<HTMLSelectElement>(null);
   const { isCompact } = useResponsive();
@@ -129,6 +130,13 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape exits zen mode
+      if (e.key === "Escape" && zenMode) {
+        e.preventDefault();
+        setZenMode(false);
+        return;
+      }
+
       const mod = e.ctrlKey || e.metaKey;
       if (!mod) return;
 
@@ -136,6 +144,13 @@ function App() {
       if (e.key === "`" && mod) {
         e.preventDefault();
         useConsoleStore.getState().toggle();
+        return;
+      }
+
+      // Ctrl+Shift+Z = redo (handled below), Ctrl+. = zen mode
+      if (e.key === "." && mod) {
+        e.preventDefault();
+        setZenMode((prev) => !prev);
         return;
       }
 
@@ -211,7 +226,7 @@ function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [newTab, closeTab, save, send, undoTab, redoTab, activeTab]);
+  }, [newTab, closeTab, save, send, undoTab, redoTab, activeTab, zenMode]);
 
   // Refresh history when a request completes
   useEffect(() => {
@@ -268,16 +283,18 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Activity Bar */}
-        <ActivityBar
-          activeView={activeView}
-          onViewChange={handleViewChange}
-          onOpenSettings={openSettings}
-          onOpenAi={() => setAiOpen(true)}
-          onToggleConsole={() => useConsoleStore.getState().toggle()}
-        />
+        {!zenMode && (
+          <ActivityBar
+            activeView={activeView}
+            onViewChange={handleViewChange}
+            onOpenSettings={openSettings}
+            onOpenAi={() => setAiOpen(true)}
+            onToggleConsole={() => useConsoleStore.getState().toggle()}
+          />
+        )}
 
         {/* Side Panel */}
-        {sidePanelVisible && !isCompact && (
+        {!zenMode && sidePanelVisible && !isCompact && (
           <SidePanel
             activeView={activeView}
             envSelectorRef={envSelectorRef}
@@ -296,7 +313,7 @@ function App() {
         {/* Main Panel */}
         <main id="main-content" className="flex flex-1 flex-col overflow-hidden bg-[var(--color-card)]" role="main">
           {/* Tab Bar */}
-          <TabBar />
+          {!zenMode && <TabBar />}
 
           {activeTab ? (
             <ProtocolView protocol={activeTab.protocol} urlBarRef={urlBarRef} />
@@ -307,10 +324,17 @@ function App() {
       </div>
 
       {/* Console (expandable) */}
-      <ConsoleBottomBar />
+      {!zenMode && <ConsoleBottomBar />}
 
       {/* Status bar */}
-      <StatusBar />
+      {!zenMode && <StatusBar />}
+
+      {/* Zen mode indicator */}
+      {zenMode && (
+        <div className="absolute left-1/2 top-3 z-50 -translate-x-1/2 animate-fade-in rounded-lg bg-[var(--color-elevated)] px-3 py-1 text-xs text-[var(--color-text-dimmed)] opacity-60">
+          Zen Mode — Press Esc to exit
+        </div>
+      )}
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       <CurlImportDialog open={curlImportOpen} onOpenChange={setCurlImportOpen} />
@@ -321,6 +345,7 @@ function App() {
         onOpenCurlImport={openCurlImport}
         onOpenRunner={() => setRunnerOpen(true)}
         onOpenImport={() => setImportOpen(true)}
+        onToggleZen={() => setZenMode((p) => !p)}
       />
       <CollectionRunnerDialog open={runnerOpen} onOpenChange={setRunnerOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />

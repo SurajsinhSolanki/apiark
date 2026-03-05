@@ -79,6 +79,10 @@ interface TabState {
   reloadFromDisk: (tabId: string) => Promise<void>;
   dismissConflict: (tabId: string) => void;
 
+  // Pin & duplicate
+  togglePin: (id: string) => void;
+  duplicateTab: (id: string) => void;
+
   // Detach tab to new window
   detachTab: (id: string) => Promise<void>;
 
@@ -121,6 +125,7 @@ function createEmptyTab(overrides?: Partial<Tab>): Tab {
     assertionResults: [],
     consoleOutput: [],
     conflictState: null,
+    pinned: false,
     undoStack: [],
     redoStack: [],
     ...overrides,
@@ -239,6 +244,7 @@ function requestFileToTab(
     assertionResults: [],
     consoleOutput: [],
     conflictState: null,
+    pinned: false,
     undoStack: [],
     redoStack: [],
   };
@@ -434,6 +440,43 @@ export const useTabStore = create<TabState>((set, get) => ({
       const [moved] = newTabs.splice(fromIndex, 1);
       newTabs.splice(toIndex, 0, moved);
       return { tabs: newTabs };
+    });
+  },
+
+  togglePin: (id) => {
+    set((state) => ({
+      tabs: state.tabs.map((t) =>
+        t.id === id ? { ...t, pinned: !t.pinned } : t,
+      ),
+    }));
+  },
+
+  duplicateTab: (id) => {
+    set((state) => {
+      const source = state.tabs.find((t) => t.id === id);
+      if (!source) return state;
+      const newId = crypto.randomUUID();
+      const dup: Tab = {
+        ...source,
+        id: newId,
+        name: `${source.name} (copy)`,
+        filePath: null, // duplicated tab is unsaved
+        isDirty: true,
+        pinned: false,
+        response: null,
+        error: null,
+        loading: false,
+        testResults: [],
+        assertionResults: [],
+        consoleOutput: [],
+        conflictState: null,
+        undoStack: [],
+        redoStack: [],
+      };
+      const idx = state.tabs.findIndex((t) => t.id === id);
+      const newTabs = [...state.tabs];
+      newTabs.splice(idx + 1, 0, dup);
+      return { tabs: newTabs, activeTabId: newId };
     });
   },
 

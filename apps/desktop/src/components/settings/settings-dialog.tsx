@@ -328,6 +328,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             {/* Updates Section */}
             <UpdateSection settings={settings} update={update} />
 
+            {/* Keyboard Shortcuts */}
+            <KeyboardShortcutsSection />
+
             {/* Backup Section */}
             <BackupSection />
           </div>
@@ -593,5 +596,46 @@ function ToggleSwitch({
         }`}
       />
     </button>
+  );
+}
+
+const SHORTCUTS = [
+  { keys: "Ctrl+Enter", desc: "Send request" },
+  { keys: "Ctrl+N", desc: "New tab" },
+  { keys: "Ctrl+T", desc: "New tab" },
+  { keys: "Ctrl+W", desc: "Close tab" },
+  { keys: "Ctrl+S", desc: "Save request" },
+  { keys: "Ctrl+K", desc: "Command palette" },
+  { keys: "Ctrl+L", desc: "Focus URL bar" },
+  { keys: "Ctrl+E", desc: "Focus environment selector" },
+  { keys: "Ctrl+I", desc: "Import cURL" },
+  { keys: "Ctrl+,", desc: "Settings" },
+  { keys: "Ctrl+\\", desc: "Toggle sidebar" },
+  { keys: "Ctrl+.", desc: "Toggle Zen mode" },
+  { keys: "Ctrl+`", desc: "Toggle console" },
+  { keys: "Ctrl+Z", desc: "Undo" },
+  { keys: "Ctrl+Shift+Z", desc: "Redo" },
+  { keys: "Ctrl+Shift+N", desc: "New window" },
+  { keys: "Ctrl+Shift+A", desc: "AI assistant" },
+  { keys: "Escape", desc: "Exit Zen mode" },
+];
+
+function KeyboardShortcutsSection() {
+  return (
+    <section>
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+        Keyboard Shortcuts
+      </h3>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+        {SHORTCUTS.map((s) => (
+          <div key={s.keys} className="flex items-center justify-between py-1">
+            <span className="text-xs text-[var(--color-text-secondary)]">{s.desc}</span>
+            <kbd className="rounded border border-[var(--color-border)] bg-[var(--color-elevated)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-text-muted)]">
+              {s.keys}
+            </kbd>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
