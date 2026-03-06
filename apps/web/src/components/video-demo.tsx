@@ -47,6 +47,7 @@ export function VideoDemo() {
             compositionHeight={VIDEO_CONFIG.height}
             durationInFrames={VIDEO_CONFIG.durationInFrames}
             fps={VIDEO_CONFIG.fps}
+            acknowledgeRemotionLicense
             style={{
               width: "100%",
               aspectRatio: "16/9",
