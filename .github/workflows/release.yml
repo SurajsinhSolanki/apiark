@@ -74,8 +74,8 @@ jobs:
             target: aarch64-apple-darwin
             label: macos-arm64
 
-          # macOS Intel
-          - platform: macos-13
+          # macOS Intel (cross-compile from ARM runner)
+          - platform: macos-latest
             target: x86_64-apple-darwin
             label: macos-x86_64
 
