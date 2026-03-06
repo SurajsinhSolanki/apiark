@@ -59,22 +59,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux x86_64
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             label: linux-x86_64
 
-          # Windows x86_64
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             label: windows-x86_64
 
-          # macOS Apple Silicon
           - platform: macos-latest
             target: aarch64-apple-darwin
             label: macos-arm64
 
-          # macOS Intel (cross-compile from ARM runner)
           - platform: macos-latest
             target: x86_64-apple-darwin
             label: macos-x86_64
@@ -110,7 +106,6 @@ jobs:
           restore-keys: |
             ${{ matrix.label }}-cargo-
 
-      # Linux system dependencies
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
@@ -132,10 +127,6 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # To enable code signing, add these as repo secrets:
-          # macOS: APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD,
-          #        APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID
-          # Windows: TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
         with:
           projectPath: apps/desktop
           tauriScript: pnpm tauri
@@ -161,7 +152,7 @@ jobs:
             target: aarch64-apple-darwin
             label: macos-arm64
             ext: ""
-          - platform: macos-13
+          - platform: macos-latest
             target: x86_64-apple-darwin
             label: macos-x86_64
             ext: ""
@@ -214,6 +205,7 @@ jobs:
   # ── Publish Release ───────────────────────────────────────────────────
   publish-release:
     needs: [create-release, build-desktop, build-cli]
+    if: always() && needs.create-release.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Publish release (undraft)
