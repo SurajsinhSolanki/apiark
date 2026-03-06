@@ -90,21 +90,13 @@ export default function Footer() {
             {/* Logo + tagline */}
             <div className="col-span-2">
               <a href="/" className="inline-flex items-center gap-2.5 group">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-                  <svg
-                    className="w-4 h-4 text-indigo-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                    <line x1="4" x2="4" y1="22" y2="15" />
-                  </svg>
-                </div>
+                <img
+                  src="/app-icon.png"
+                  alt="ApiArk"
+                  width={32}
+                  height={32}
+                  className="rounded-lg"
+                />
                 <span className="text-lg font-bold text-white">ApiArk</span>
               </a>
               <p className="mt-4 text-sm text-zinc-500 max-w-xs leading-relaxed">

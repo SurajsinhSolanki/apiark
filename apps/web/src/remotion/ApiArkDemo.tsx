@@ -2,7 +2,9 @@
 
 import {
   AbsoluteFill,
+  Img,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
   spring,
@@ -66,22 +68,14 @@ function TitleScene() {
             marginBottom: 32,
           }}
         >
-          <div
+          <Img
+            src={staticFile("app-icon.png")}
             style={{
               width: 56,
               height: 56,
               borderRadius: 14,
-              background: "#6366f1",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 28,
-              fontWeight: 800,
-              color: "#fff",
             }}
-          >
-            A
-          </div>
+          />
           <span
             style={{
               fontSize: 42,
