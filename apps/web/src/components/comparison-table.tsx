@@ -248,7 +248,7 @@ export default function ComparisonTable() {
             <table className="w-full text-left min-w-[760px]">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="sticky left-0 z-20 bg-[#0a0a0f] px-5 py-4 text-sm font-medium text-zinc-400 w-44 min-w-[176px]">
+                  <th className="sticky left-0 z-20 bg-[var(--color-surface)] px-5 py-4 text-sm font-medium text-zinc-400 w-44 min-w-[176px]">
                     Feature
                   </th>
                   {competitors.map((key) => (
@@ -278,7 +278,7 @@ export default function ComparisonTable() {
                       i % 2 === 0 ? "bg-transparent" : "bg-white/[0.01]"
                     }`}
                   >
-                    <td className="sticky left-0 z-10 bg-[#0a0a0f] px-5 py-3.5 text-sm font-medium text-zinc-300 w-44 min-w-[176px]">
+                    <td className="sticky left-0 z-10 bg-[var(--color-surface)] px-5 py-3.5 text-sm font-medium text-zinc-300 w-44 min-w-[176px]">
                       <span className="relative">
                         {row.feature}
                         {/* Match the alternating row bg on the sticky cell */}

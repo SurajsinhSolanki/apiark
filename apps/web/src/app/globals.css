@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #050507;
-  --color-surface: #0a0a0f;
-  --color-elevated: #111118;
-  --color-card: #14141c;
-  --color-border: #1e1e2a;
+  --color-bg: #09090b;
+  --color-surface: #111113;
+  --color-elevated: #19191d;
+  --color-card: #1c1c22;
+  --color-border: #2a2a35;
   --color-text: #e4e4e7;
   --color-text-secondary: #a1a1aa;
   --color-text-muted: #71717a;
@@ -49,8 +49,8 @@ body {
 /* Smooth scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+::-webkit-scrollbar-thumb { background: #35354a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #45455a; }
 
 /* Typing cursor animation */
 @keyframes blink {

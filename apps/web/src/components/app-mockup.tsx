@@ -237,7 +237,7 @@ function ActivityBar() {
     { color: "#eab308", active: false },
   ];
   return (
-    <div className="w-10 flex flex-col items-center py-3 gap-2 bg-[#0a0a0f] border-r border-[#1a1a24] shrink-0">
+    <div className="w-10 flex flex-col items-center py-3 gap-2 bg-[var(--color-bg)] border-r border-[var(--color-border)] shrink-0">
       <div className="w-6 h-6 rounded-md overflow-hidden mb-2">
         <img src="/logo.svg" alt="" className="w-full h-full" />
       </div>
@@ -280,9 +280,9 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
   return (
     <div className={`relative ${className}`}>
       {/* Window chrome */}
-      <div className="rounded-xl border border-[#1e1e2a] bg-[#0d0d14] overflow-hidden shadow-2xl shadow-black/50">
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden shadow-2xl shadow-black/50">
         {/* Title bar */}
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-[#0a0a10] border-b border-[#1a1a24]">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
           <div className="flex gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
             <div className="w-2.5 h-2.5 rounded-full bg-[#eab308]" />
@@ -298,8 +298,8 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
           <ActivityBar />
 
           {/* Sidebar */}
-          <div className="w-48 bg-[#0c0c12] border-r border-[#1a1a24] py-2 overflow-hidden shrink-0 hidden md:block">
-            <div className="px-3 pb-2 mb-1 border-b border-[#1a1a24]">
+          <div className="w-48 bg-[#0c0c12] border-r border-[var(--color-border)] py-2 overflow-hidden shrink-0 hidden md:block">
+            <div className="px-3 pb-2 mb-1 border-b border-[var(--color-border)]">
               <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Collections</span>
             </div>
             <AnimatePresence mode="wait">
@@ -350,7 +350,7 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
           {/* Main Panel */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Tabs */}
-            <div className="flex items-center border-b border-[#1a1a24] bg-[#0a0a10]">
+            <div className="flex items-center border-b border-[var(--color-border)] bg-[var(--color-bg)]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeScene}
@@ -363,8 +363,8 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
                   {scene.tabs.map((tab, i) => (
                     <div
                       key={i}
-                      className={`flex items-center gap-1.5 px-3 py-2 text-[11px] border-r border-[#1a1a24] ${
-                        tab.active ? "bg-[#0d0d14] text-white" : "text-zinc-600"
+                      className={`flex items-center gap-1.5 px-3 py-2 text-[11px] border-r border-[var(--color-border)] ${
+                        tab.active ? "bg-[var(--color-surface)] text-white" : "text-zinc-600"
                       }`}
                     >
                       <span className="font-bold text-[9px]" style={{ color: tab.color }}>
@@ -379,7 +379,7 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
             </div>
 
             {/* URL Bar */}
-            <div className="flex items-center gap-2 px-3 py-2 border-b border-[#1a1a24]">
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--color-border)]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeScene}
@@ -407,8 +407,8 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
             <div className="flex-1 flex min-h-0">
               {/* Request body (left half) */}
               {scene.requestBody && (
-                <div className="w-1/2 border-r border-[#1a1a24] overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a10] border-b border-[#1a1a24]">
+                <div className="w-1/2 border-r border-[var(--color-border)] overflow-hidden">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
                     <span className="text-[10px] text-zinc-400 font-medium">Body</span>
                     <span className="text-[9px] text-zinc-600 px-1.5 rounded bg-zinc-800/50">
                       {scene.protocol === "GraphQL" ? "GraphQL" : "JSON"}
@@ -435,7 +435,7 @@ export function AppMockup({ autoPlay = true, className = "" }: { autoPlay?: bool
               {/* Response (right half or full) */}
               <div className={scene.requestBody ? "w-1/2" : "w-full"}>
                 {/* Response status bar */}
-                <div className="flex items-center gap-3 px-3 py-1.5 bg-[#0a0a10] border-b border-[#1a1a24]">
+                <div className="flex items-center gap-3 px-3 py-1.5 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeScene}

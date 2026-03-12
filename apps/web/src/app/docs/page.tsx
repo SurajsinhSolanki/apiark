@@ -178,7 +178,7 @@ export default function DocsPage() {
                   ))}
                 </ul>
                 {section.code && (
-                  <pre className="rounded-lg border border-[#1e1e2a] bg-[#0a0a10] p-4 font-mono text-xs text-zinc-400 leading-relaxed overflow-x-auto">
+                  <pre className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-4 font-mono text-xs text-zinc-400 leading-relaxed overflow-x-auto">
                     {section.code}
                   </pre>
                 )}

@@ -7,9 +7,10 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Menu, X, Github, ChevronDown, Download } from "lucide-react";
 
 const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "Protocols", href: "#protocols" },
-  { label: "Performance", href: "#performance" },
+  { label: "Features", href: "/#features" },
+  { label: "Protocols", href: "/#protocols" },
+  { label: "Performance", href: "/#performance" },
+  { label: "Docs", href: "/docs" },
   { label: "Pricing", href: "/pricing" },
 ];
 
@@ -48,12 +49,20 @@ export default function Navbar() {
   };
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (!href.startsWith("#")) return;
-    e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    // Only handle hash links on the landing page
+    if (!href.includes("#")) return;
+    const hash = href.split("#")[1];
+    if (!hash) return;
+
+    // If we're on the landing page, smooth-scroll to the section
+    if (window.location.pathname === "/") {
+      e.preventDefault();
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
     }
+    // Otherwise, let the browser navigate to /#section normally
     setMobileOpen(false);
   };
 
@@ -171,8 +180,6 @@ export default function Navbar() {
 
             <a
               href="/download"
-              target="_blank"
-              rel="noopener noreferrer"
               className="group relative flex items-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-indigo-400 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -260,8 +267,6 @@ export default function Navbar() {
 
               <a
                 href="/download"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30"
               >
                 <Download className="h-4 w-4" />

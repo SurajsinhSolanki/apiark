@@ -106,9 +106,9 @@ Payload: {"temp": 20.1, "unit": "C"}`,
 
 function MiniAppWindow({ protocol }: { protocol: typeof protocols[0] }) {
   return (
-    <div className="rounded-lg border border-[#1e1e2a] bg-[#0d0d14] overflow-hidden">
+    <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
       {/* Title bar */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a10] border-b border-[#1a1a24]">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
         <div className="w-2 h-2 rounded-full bg-[#ef4444]" />
         <div className="w-2 h-2 rounded-full bg-[#eab308]" />
         <div className="w-2 h-2 rounded-full bg-[#22c55e]" />
@@ -116,7 +116,7 @@ function MiniAppWindow({ protocol }: { protocol: typeof protocols[0] }) {
       </div>
 
       {/* URL bar */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[#1a1a24]">
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--color-border)]">
         <span
           className="text-[9px] font-bold px-1.5 py-0.5 rounded"
           style={{ color: protocol.color, background: `${protocol.color}15` }}

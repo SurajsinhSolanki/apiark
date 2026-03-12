@@ -9,9 +9,9 @@ import {
 
 /* ─── Shared Styles ──────────────────────────────────────────────────── */
 
-const BG = "#050507";
-const SURFACE = "#0a0a0f";
-const BORDER = "#1e1e2a";
+const BG = "#09090b";
+const SURFACE = "#111113";
+const BORDER = "#2a2a35";
 const MUTED = "#71717a";
 const TEXT = "#e4e4e7";
 const ACCENT = "#6366f1";

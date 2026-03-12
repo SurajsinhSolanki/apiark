@@ -149,7 +149,7 @@ export function Features() {
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
               }}
-              className="group flex flex-col gap-3 rounded-xl border border-[#1e1e2a] bg-[#0c0c14] p-4 transition-colors hover:border-[#2a2a3a]"
+              className="group flex flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-colors hover:border-[#3a3a45]"
             >
               <div className="flex items-center gap-3">
                 <span
@@ -167,7 +167,7 @@ export function Features() {
               </div>
 
               {/* Mini terminal */}
-              <div className="rounded-md border border-[#1a1a24] bg-[#08080e] p-2.5 font-mono text-[10px] leading-relaxed">
+              <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2.5 font-mono text-[10px] leading-relaxed">
                 {feature.lines.map((line, i) => (
                   <div key={i} style={{ color: line.color || "transparent" }}>
                     {line.text || "\u00A0"}

@@ -83,7 +83,7 @@ export default function CLIPage() {
             <p className="text-zinc-400 mb-4">
               Run collections, import/export, and integrate with CI/CD.
             </p>
-            <pre className="rounded-lg border border-[#1e1e2a] bg-[#0a0a10] p-3 font-mono text-sm text-zinc-400 mb-12">
+            <pre className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3 font-mono text-sm text-zinc-400 mb-12">
               npm install -g @apiark/cli
             </pre>
           </motion.div>
@@ -101,7 +101,7 @@ export default function CLIPage() {
                 </h2>
                 <p className="text-sm text-zinc-400 mb-3">{cmd.description}</p>
 
-                <pre className="rounded-lg border border-[#1e1e2a] bg-[#0a0a10] p-3 font-mono text-xs text-zinc-500 mb-4">
+                <pre className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3 font-mono text-xs text-zinc-500 mb-4">
                   {cmd.usage}
                 </pre>
 
@@ -121,7 +121,7 @@ export default function CLIPage() {
 
                 <div>
                   <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Example</h3>
-                  <pre className="rounded-lg border border-[#1e1e2a] bg-[#0a0a10] p-3 font-mono text-xs text-zinc-400 leading-relaxed">
+                  <pre className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3 font-mono text-xs text-zinc-400 leading-relaxed">
                     {cmd.example}
                   </pre>
                 </div>
@@ -135,9 +135,9 @@ export default function CLIPage() {
               transition={{ duration: 0.4, delay: 0.3 }}
             >
               <h2 className="text-lg font-semibold text-white mb-4">Exit Codes</h2>
-              <div className="rounded-lg border border-[#1e1e2a] bg-[#0a0a10] overflow-hidden">
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
                 {exitCodes.map((ec) => (
-                  <div key={ec.code} className="flex items-center gap-4 px-4 py-3 border-b border-[#1e1e2a] last:border-b-0">
+                  <div key={ec.code} className="flex items-center gap-4 px-4 py-3 border-b border-[var(--color-border)] last:border-b-0">
                     <code className="text-sm font-mono text-indigo-400 w-8">{ec.code}</code>
                     <span className="text-sm text-zinc-400">{ec.meaning}</span>
                   </div>

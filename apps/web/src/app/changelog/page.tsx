@@ -172,7 +172,7 @@ const fadeUp = {
 
 export default function ChangelogPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0b]">
+    <div className="min-h-screen bg-[var(--color-bg)]">
       <Navbar />
 
       <main className="mx-auto max-w-3xl px-6 pb-24 pt-36">
