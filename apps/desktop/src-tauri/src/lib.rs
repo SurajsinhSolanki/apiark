@@ -64,7 +64,9 @@ use commands::terminal::{
     terminal_close, terminal_create, terminal_resize, terminal_write, TerminalManager,
 };
 use commands::trash::{empty_trash, list_trash, restore_from_trash};
-use commands::updater::{backup_current_binary, clear_backups, get_install_type, list_rollback_versions};
+use commands::updater::{
+    backup_current_binary, clear_backups, get_install_type, list_rollback_versions,
+};
 use commands::watcher::{unwatch_collection, watch_collection};
 use commands::websocket::{ws_connect, ws_disconnect, ws_send};
 use commands::window::open_new_window;
