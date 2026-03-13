@@ -1,7 +1,7 @@
 {
   "name": "apiark",
   "private": true,
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Local-first API development platform",
   "scripts": {
     "dev": "pnpm --filter @apiark/desktop dev",
