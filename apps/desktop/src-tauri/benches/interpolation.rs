@@ -83,7 +83,12 @@ fn bench_interpolation(c: &mut Criterion) {
     for count in [5, 20, 50] {
         let vars = make_variables(10);
         let map: HashMap<String, String> = (0..count)
-            .map(|i| (format!("Header-{i}"), format!("{{{{var{}}}}}-suffix", i % 10)))
+            .map(|i| {
+                (
+                    format!("Header-{i}"),
+                    format!("{{{{var{}}}}}-suffix", i % 10),
+                )
+            })
             .collect();
         map_group.bench_with_input(BenchmarkId::new("headers", count), &count, |b, _| {
             b.iter(|| interpolate_map(black_box(&map), black_box(&vars)))

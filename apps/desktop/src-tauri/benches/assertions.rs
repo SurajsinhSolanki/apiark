@@ -97,22 +97,58 @@ fn bench_assertions(c: &mut Criterion) {
             ("responseTime", "lt", serde_yaml::Value::Number(2000.into())),
             ("body.id", "eq", serde_yaml::Value::Number(42.into())),
             ("body.name", "eq", serde_yaml::Value::String("Test".into())),
-            ("body.email", "contains", serde_yaml::Value::String("@".into())),
+            (
+                "body.email",
+                "contains",
+                serde_yaml::Value::String("@".into()),
+            ),
             ("body.active", "eq", serde_yaml::Value::Bool(true)),
-            ("body.score", "gt", serde_yaml::Value::Number(serde_yaml::Number::from(90))),
-            ("body.tags.length", "eq", serde_yaml::Value::Number(3.into())),
-            ("body.meta.version", "gte", serde_yaml::Value::Number(1.into())),
-            ("headers.content-type", "contains", serde_yaml::Value::String("json".into())),
-            ("headers.x-request-id", "eq", serde_yaml::Value::String("abc123".into())),
+            (
+                "body.score",
+                "gt",
+                serde_yaml::Value::Number(serde_yaml::Number::from(90)),
+            ),
+            (
+                "body.tags.length",
+                "eq",
+                serde_yaml::Value::Number(3.into()),
+            ),
+            (
+                "body.meta.version",
+                "gte",
+                serde_yaml::Value::Number(1.into()),
+            ),
+            (
+                "headers.content-type",
+                "contains",
+                serde_yaml::Value::String("json".into()),
+            ),
+            (
+                "headers.x-request-id",
+                "eq",
+                serde_yaml::Value::String("abc123".into()),
+            ),
             ("body.tags[0]", "eq", serde_yaml::Value::String("a".into())),
             ("body.tags[1]", "eq", serde_yaml::Value::String("b".into())),
             ("body.tags[2]", "eq", serde_yaml::Value::String("c".into())),
             ("body.nonexistent", "exists", serde_yaml::Value::Bool(false)),
-            ("body.meta.region", "eq", serde_yaml::Value::String("us".into())),
+            (
+                "body.meta.region",
+                "eq",
+                serde_yaml::Value::String("us".into()),
+            ),
             ("statusText", "eq", serde_yaml::Value::String("OK".into())),
             ("sizeBytes", "gt", serde_yaml::Value::Number(0.into())),
-            ("headers.cache-control", "eq", serde_yaml::Value::String("no-cache".into())),
-            ("body.meta.env", "eq", serde_yaml::Value::String("prod".into())),
+            (
+                "headers.cache-control",
+                "eq",
+                serde_yaml::Value::String("no-cache".into()),
+            ),
+            (
+                "body.meta.env",
+                "eq",
+                serde_yaml::Value::String("prod".into()),
+            ),
         ];
         for (path, op, val) in all_assertions.into_iter().take(count) {
             let mut op_map = serde_yaml::Mapping::new();

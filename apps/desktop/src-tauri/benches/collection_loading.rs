@@ -52,11 +52,7 @@ assert:
                     _ => "DELETE",
                 }
             );
-            fs::write(
-                folder_path.join(format!("request-{j}.yaml")),
-                &request_yaml,
-            )
-            .unwrap();
+            fs::write(folder_path.join(format!("request-{j}.yaml")), &request_yaml).unwrap();
         }
     }
 }
@@ -71,13 +67,9 @@ fn bench_collection_loading(c: &mut Criterion) {
         let tmp = tempfile::tempdir().unwrap();
         create_temp_collection(tmp.path(), count);
 
-        group.bench_with_input(
-            BenchmarkId::new("load_tree", count),
-            &count,
-            |b, _| {
-                b.iter(|| load_collection_tree(tmp.path()).unwrap());
-            },
-        );
+        group.bench_with_input(BenchmarkId::new("load_tree", count), &count, |b, _| {
+            b.iter(|| load_collection_tree(tmp.path()).unwrap());
+        });
     }
 
     group.finish();

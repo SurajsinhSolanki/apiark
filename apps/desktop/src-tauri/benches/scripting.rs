@@ -24,8 +24,7 @@ fn context_with_response() -> ScriptContext {
     let mut ctx = empty_context();
     ctx.env
         .insert("baseUrl".to_string(), "https://api.example.com".to_string());
-    ctx.env
-        .insert("token".to_string(), "abc123".to_string());
+    ctx.env.insert("token".to_string(), "abc123".to_string());
     ctx.response = Some(ResponseSnapshot {
         status: 200,
         status_text: "OK".to_string(),
@@ -48,8 +47,12 @@ fn bench_scripting(c: &mut Criterion) {
     // Measure the overhead of just creating the runtime + injecting ark API
     group.bench_function("empty_script_overhead", |b| {
         b.iter(|| {
-            execute_script(black_box("var x = 1;"), empty_context(), ScriptPhase::PreRequest)
-                .unwrap()
+            execute_script(
+                black_box("var x = 1;"),
+                empty_context(),
+                ScriptPhase::PreRequest,
+            )
+            .unwrap()
         })
     });
 
