@@ -42,8 +42,7 @@ let kvCounter = 0;
 const kvId = () => `kv_${Date.now()}_${++kvCounter}_${Math.random().toString(36).slice(2, 9)}`;
 
 function isCurlCommand(text: string): boolean {
-  const trimmed = text.trim().toLowerCase();
-  return trimmed.startsWith("curl") && /curl\s+[-A-Za-z]/.test(trimmed);
+  return /^curl\s+/i.test(text.trim());
 }
 
 /** Extract all {{variableName}} references from a tab's fields */
@@ -333,6 +332,8 @@ export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) 
             username: parsed.authBasic[0],
             password: parsed.authBasic[1],
           });
+        } else {
+          setAuth({ type: "none" });
         }
 
         addToast({
