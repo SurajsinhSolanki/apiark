@@ -239,7 +239,7 @@ function ActivityBar() {
   return (
     <div className="w-10 flex flex-col items-center py-3 gap-2 bg-[var(--color-bg)] border-r border-[var(--color-border)] shrink-0">
       <div className="w-6 h-6 rounded-md overflow-hidden mb-2">
-        <img src="/logo.svg" alt="" className="w-full h-full" />
+        <img src="/logo.png" alt="" className="w-full h-full" />
       </div>
       {icons.map((ic, i) => (
         <div

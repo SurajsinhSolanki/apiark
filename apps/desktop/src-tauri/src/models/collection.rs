@@ -85,9 +85,30 @@ pub struct FolderConfig {
 
 /// Lightweight metadata read from YAML without parsing full body/scripts
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RequestMeta {
     pub name: String,
     pub method: HttpMethod,
+    #[serde(default)]
+    pub body: Option<RequestBodyFile>,
+}
+
+impl RequestMeta {
+    /// Detect GraphQL: POST with a JSON body containing a "query" field.
+    pub fn is_graphql(&self) -> bool {
+        if !matches!(self.method, HttpMethod::POST) {
+            return false;
+        }
+        if let Some(body) = &self.body {
+            if body.body_type == "json" {
+                return serde_json::from_str::<serde_json::Value>(&body.content)
+                    .ok()
+                    .and_then(|v| v.get("query").cloned())
+                    .is_some();
+            }
+        }
+        false
+    }
 }
 
 /// Recursive tree node sent to the frontend
@@ -108,5 +129,65 @@ pub enum CollectionNode {
         name: String,
         method: HttpMethod,
         path: String,
+        #[serde(
+            default,
+            rename = "isGraphql",
+            skip_serializing_if = "std::ops::Not::not"
+        )]
+        is_graphql: bool,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_request_meta_detects_graphql() {
+        let yaml = r#"
+name: Test
+method: POST
+url: https://example.com/graphql
+body:
+  type: json
+  content: '{"query": "{ users { id } }"}'
+"#;
+        let meta: RequestMeta = serde_yaml::from_str(yaml).unwrap();
+        assert!(meta.is_graphql(), "should detect GraphQL from body");
+    }
+
+    #[test]
+    fn test_request_meta_non_graphql() {
+        let yaml = r#"
+name: Test
+method: POST
+url: https://example.com/api
+body:
+  type: json
+  content: '{"key": "value"}'
+"#;
+        let meta: RequestMeta = serde_yaml::from_str(yaml).unwrap();
+        assert!(!meta.is_graphql(), "should not detect as GraphQL");
+    }
+
+    #[test]
+    fn test_request_meta_detects_graphql_multiline() {
+        let yaml = "name: Test\nmethod: POST\nurl: https://countries.trevorblades.com/graphql\nheaders:\n  Content-Type: application/json\nbody:\n  type: json\n  content: |-\n    {\n      \"query\": \"query { countries { name } }\"\n    }\n";
+        let meta: RequestMeta = serde_yaml::from_str(yaml).unwrap();
+        assert!(
+            meta.is_graphql(),
+            "should detect GraphQL with multiline body content"
+        );
+    }
+
+    #[test]
+    fn test_request_meta_get_not_graphql() {
+        let yaml = r#"
+name: Test
+method: GET
+url: https://example.com/api
+"#;
+        let meta: RequestMeta = serde_yaml::from_str(yaml).unwrap();
+        assert!(!meta.is_graphql());
+    }
 }

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { KeyValueEditor } from "./key-value-editor";
-import type { AuthConfig, BodyType, RequestBody, OAuth2GrantType, OAuthTokenStatus } from "@apiark/types";
+import type { AuthConfig, BodyType, RequestBody, KeyValuePair, OAuth2GrantType, OAuthTokenStatus } from "@apiark/types";
 import { oauthStartFlow, oauthGetTokenStatus, oauthClearToken } from "@/lib/tauri-api";
 import { HintTooltip } from "@/components/ui/hint-tooltip";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { Plus, Trash2, FileUp } from "lucide-react";
 
 /** Extract :paramName path variables from a URL */
 function extractPathVariables(url: string): string[] {
@@ -15,25 +17,31 @@ function extractPathVariables(url: string): string[] {
 
 type Tab = "params" | "headers" | "body" | "auth" | "scripts" | "tests";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "params", label: "Params" },
-  { id: "headers", label: "Headers" },
-  { id: "body", label: "Body" },
-  { id: "auth", label: "Auth" },
-  { id: "scripts", label: "Scripts" },
-  { id: "tests", label: "Tests" },
-];
+const TAB_IDS: Tab[] = ["params", "headers", "body", "auth", "scripts", "tests"];
 
-const BODY_TYPES: { value: BodyType; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "json", label: "JSON" },
-  { value: "xml", label: "XML" },
-  { value: "raw", label: "Raw" },
-  { value: "urlencoded", label: "URL Encoded" },
-  { value: "form-data", label: "Form Data" },
-];
+const TAB_LABEL_KEYS: Record<Tab, string> = {
+  params: "request.params",
+  headers: "request.headers",
+  body: "request.body",
+  auth: "request.auth",
+  scripts: "request.scripts",
+  tests: "request.tests",
+};
+
+const BODY_TYPE_IDS: BodyType[] = ["none", "json", "xml", "raw", "urlencoded", "form-data"];
+
+const BODY_TYPE_LABEL_KEYS: Record<BodyType, string> = {
+  none: "body.none",
+  json: "body.json",
+  xml: "body.xml",
+  raw: "body.raw",
+  urlencoded: "body.urlencoded",
+  "form-data": "body.formData",
+  binary: "body.binary",
+};
 
 export function RequestPanel() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>("params");
   const tab = useActiveTab();
   const {
@@ -41,49 +49,50 @@ export function RequestPanel() {
     setHeaders,
     setBody,
     setAuth,
+    setUrl,
+    setPathVariables,
     setPreRequestScript,
     setPostResponseScript,
     setTestScript,
     setAssertions,
-    setUrl,
   } = useTabStore();
 
   const pathVars = useMemo(() => tab ? extractPathVariables(tab.url) : [], [tab?.url]);
 
   if (!tab) return null;
 
-  const { params, headers, body, auth, url } = tab;
+  const { params, headers, body, auth, pathVariables } = tab;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Tab bar */}
       <div className="flex gap-0 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        {TABS.map((t) => (
+        {TAB_IDS.map((tabId) => (
           <button
-            key={t.id}
-            data-tour={`tab-${t.id}`}
-            onClick={() => setActiveTab(t.id)}
-            className={`shrink-0 whitespace-nowrap px-4 py-2 text-sm transition-colors ${
-              activeTab === t.id
+            key={tabId}
+            data-tour={`tab-${tabId}`}
+            onClick={() => setActiveTab(tabId)}
+            className={`shrink-0 whitespace-nowrap px-3 py-2 text-sm transition-colors ${
+              activeTab === tabId
                 ? "border-b-2 border-blue-500 text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
             }`}
           >
-            {t.label}
-            {t.id === "params" && params.filter((p) => p.key).length > 0 && (
+            {t(TAB_LABEL_KEYS[tabId])}
+            {tabId === "params" && params.filter((p) => p.key).length > 0 && (
               <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
                 ({params.filter((p) => p.key).length})
               </span>
             )}
-            {t.id === "headers" && headers.filter((h) => h.key).length > 0 && (
+            {tabId === "headers" && headers.filter((h) => h.key).length > 0 && (
               <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
                 ({headers.filter((h) => h.key).length})
               </span>
             )}
-            {t.id === "scripts" && (tab.preRequestScript || tab.postResponseScript) && (
+            {tabId === "scripts" && (tab.preRequestScript || tab.postResponseScript) && (
               <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
             )}
-            {t.id === "tests" && (tab.testScript || tab.assertions) && (
+            {tabId === "tests" && (tab.testScript || tab.assertions) && (
               <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-blue-500" />
             )}
           </button>
@@ -94,18 +103,18 @@ export function RequestPanel() {
       <div className="flex-1 overflow-auto p-3">
         {activeTab === "params" && (
           <div className="relative space-y-4">
-            {pathVars.length > 0 && (
-              <PathVariablesEditor
-                url={url}
-                pathVars={pathVars}
-                onUrlChange={setUrl}
-              />
-            )}
+            <PathVariablesEditor
+              url={tab.url}
+              pathVars={pathVars}
+              values={pathVariables}
+              onChange={setPathVariables}
+              onUrlChange={setUrl}
+            />
             <KeyValueEditor
               pairs={params}
               onChange={setParams}
               keyPlaceholder="Parameter"
-              valuePlaceholder="Value"
+              valuePlaceholder={t("request.value")}
             />
             <HintTooltip hintId="env-vars" message="Tip: Use {{variableName}} for dynamic values from environments" />
           </div>
@@ -116,7 +125,7 @@ export function RequestPanel() {
             pairs={headers}
             onChange={setHeaders}
             keyPlaceholder="Header"
-            valuePlaceholder="Value"
+            valuePlaceholder={t("request.value")}
           />
         )}
 
@@ -153,29 +162,36 @@ export function RequestPanel() {
 function PathVariablesEditor({
   url,
   pathVars,
+  values,
+  onChange,
   onUrlChange,
 }: {
   url: string;
   pathVars: string[];
+  values: Record<string, string>;
+  onChange: (pathVariables: Record<string, string>) => void;
   onUrlChange: (url: string) => void;
 }) {
-  // Extract current values from the URL
-  // We store a map of param name -> user-typed value
-  const [values, setValues] = useState<Record<string, string>>({});
+  const { t } = useTranslation();
+  const [newVarName, setNewVarName] = useState("");
 
   const handleChange = (paramName: string, value: string) => {
-    setValues((prev) => ({ ...prev, [paramName]: value }));
+    onChange({ ...values, [paramName]: value });
+  };
 
-    // Replace :paramName with the value in the URL
-    if (value) {
-      onUrlChange(url.replace(new RegExp(`:${paramName}\\b`), value));
-    }
+  const handleAdd = () => {
+    const name = newVarName.trim();
+    if (!name || pathVars.includes(name)) return;
+    // Append :paramName to the URL
+    const separator = url.endsWith("/") ? "" : "/";
+    onUrlChange(`${url}${separator}:${name}`);
+    setNewVarName("");
   };
 
   return (
     <div>
       <label className="mb-1.5 block text-xs font-medium text-[var(--color-text-secondary)]">
-        Path Variables
+        {t("request.pathVariables")}
       </label>
       <div className="space-y-1">
         {pathVars.map((param) => (
@@ -187,12 +203,151 @@ function PathVariablesEditor({
               type="text"
               value={values[param] ?? ""}
               onChange={(e) => handleChange(param, e.target.value)}
-              placeholder="Value"
+              placeholder={t("request.value")}
               className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
         ))}
       </div>
+      <div className="mt-2 flex gap-2">
+        <input
+          type="text"
+          value={newVarName}
+          onChange={(e) => setNewVarName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+          placeholder={t("request.variableName")}
+          className="flex-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!newVarName.trim() || pathVars.includes(newVarName.trim())}
+          className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)] disabled:opacity-40"
+        >
+          + {t("request.addRow")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+let formKvCounter = 0;
+const formKvId = () => `kv_fd_${Date.now()}_${++formKvCounter}`;
+
+function FormDataEditor({
+  pairs,
+  onChange,
+}: {
+  pairs: KeyValuePair[];
+  onChange: (pairs: KeyValuePair[]) => void;
+}) {
+  const { t } = useTranslation();
+  const update = (index: number, field: string, value: string | boolean) => {
+    const updated = pairs.map((p, i) =>
+      i === index ? { ...p, [field]: value } : p,
+    );
+    onChange(updated);
+  };
+
+  const addRow = () => {
+    onChange([...pairs, { id: formKvId(), key: "", value: "", enabled: true }]);
+  };
+
+  const removeRow = (index: number) => {
+    if (pairs.length <= 1) {
+      onChange([{ id: formKvId(), key: "", value: "", enabled: true }]);
+      return;
+    }
+    onChange(pairs.filter((_, i) => i !== index));
+  };
+
+  const pickFile = async (index: number) => {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({ multiple: false });
+      if (selected) {
+        const path = typeof selected === "string" ? selected : selected;
+        const updated = pairs.map((p, i) =>
+          i === index ? { ...p, value: path as string, valueType: "file" as const } : p,
+        );
+        onChange(updated);
+      }
+    } catch {
+      // dialog cancelled
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="grid grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-2 px-1 text-xs text-[var(--color-text-muted)]">
+        <span className="w-5" />
+        <span>{t("request.field")}</span>
+        <span>{t("request.value")}</span>
+        <span className="w-7" />
+        <span className="w-7" />
+      </div>
+
+      {pairs.map((pair, index) => (
+        <div
+          key={pair.id}
+          className="grid grid-cols-[auto_1fr_1fr_auto_auto] items-center gap-2 px-1"
+        >
+          <input
+            type="checkbox"
+            checked={pair.enabled}
+            onChange={(e) => update(index, "enabled", e.target.checked)}
+            className="h-4 w-4 accent-blue-500"
+          />
+          <input
+            type="text"
+            value={pair.key}
+            onChange={(e) => update(index, "key", e.target.value)}
+            placeholder={t("request.field")}
+            className="rounded bg-[var(--color-elevated)] px-2 py-1 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <div className="flex items-center gap-1">
+            <input
+              type="text"
+              value={pair.value}
+              onChange={(e) => {
+                const updated = pairs.map((p, i) =>
+                  i === index ? { ...p, value: e.target.value, valueType: undefined } : p,
+                );
+                onChange(updated);
+              }}
+              placeholder={pair.valueType === "file" ? t("request.filePath") : t("request.value")}
+              className={`min-w-0 flex-1 rounded bg-[var(--color-elevated)] px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${
+                pair.valueType === "file"
+                  ? "text-violet-400 placeholder-violet-400/50"
+                  : "text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)]"
+              }`}
+            />
+            <button
+              onClick={() => pickFile(index)}
+              className={`shrink-0 rounded p-1 transition-colors ${
+                pair.valueType === "file"
+                  ? "bg-violet-500/20 text-violet-400"
+                  : "text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+              }`}
+              title={t("request.embedFileContent")}
+            >
+              <FileUp className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <button
+            onClick={() => removeRow(index)}
+            className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-red-400"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={addRow}
+        className="flex items-center gap-1 px-1 pt-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+      >
+        <Plus className="h-3 w-3" /> Add
+      </button>
     </div>
   );
 }
@@ -208,11 +363,12 @@ function ScriptsEditor({
   onPreRequestChange: (script: string | null) => void;
   onPostResponseChange: (script: string | null) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div>
         <label className="mb-1.5 block text-xs font-medium text-[var(--color-text-secondary)]">
-          Pre-request Script
+          {t("request.preRequest")}
         </label>
         <p className="mb-2 text-xs text-[var(--color-text-dimmed)]">
           Runs before the request is sent. Use <code className="rounded bg-[var(--color-elevated)] px-1">ark.env.set()</code>, <code className="rounded bg-[var(--color-elevated)] px-1">ark.request.setHeader()</code>, etc.
@@ -228,7 +384,7 @@ function ScriptsEditor({
 
       <div>
         <label className="mb-1.5 block text-xs font-medium text-[var(--color-text-secondary)]">
-          Post-response Script
+          {t("request.postResponse")}
         </label>
         <p className="mb-2 text-xs text-[var(--color-text-dimmed)]">
           Runs after the response is received. Access response via <code className="rounded bg-[var(--color-elevated)] px-1">ark.response.json()</code>, <code className="rounded bg-[var(--color-elevated)] px-1">ark.response.status</code>, etc.
@@ -256,11 +412,12 @@ function TestsEditor({
   onAssertionsChange: (assertions: string | null) => void;
   onTestScriptChange: (script: string | null) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div>
         <label className="mb-1.5 block text-xs font-medium text-[var(--color-text-secondary)]">
-          Assertions (YAML)
+          {t("request.assertions")}
         </label>
         <p className="mb-2 text-xs text-[var(--color-text-dimmed)]">
           Declarative checks. E.g. <code className="rounded bg-[var(--color-elevated)] px-1">status: 200</code>, <code className="rounded bg-[var(--color-elevated)] px-1">{"body.id: { type: string }"}</code>
@@ -276,7 +433,7 @@ function TestsEditor({
 
       <div>
         <label className="mb-1.5 block text-xs font-medium text-[var(--color-text-secondary)]">
-          Test Script (JavaScript)
+          {t("request.testScript")}
         </label>
         <p className="mb-2 text-xs text-[var(--color-text-dimmed)]">
           Write tests using <code className="rounded bg-[var(--color-elevated)] px-1">ark.test()</code> and <code className="rounded bg-[var(--color-elevated)] px-1">ark.expect()</code>.
@@ -300,21 +457,22 @@ function BodyEditor({
   body: RequestBody;
   onChange: (body: RequestBody) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       {/* Body type selector */}
       <div className="flex gap-2">
-        {BODY_TYPES.map((bt) => (
+        {BODY_TYPE_IDS.map((btId) => (
           <button
-            key={bt.value}
-            onClick={() => onChange({ ...body, type: bt.value })}
+            key={btId}
+            onClick={() => onChange({ ...body, type: btId })}
             className={`rounded px-3 py-1 text-xs transition-colors ${
-              body.type === bt.value
+              body.type === btId
                 ? "bg-blue-600 text-white"
                 : "bg-[var(--color-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             }`}
           >
-            {bt.label}
+            {t(BODY_TYPE_LABEL_KEYS[btId])}
           </button>
         ))}
       </div>
@@ -330,12 +488,19 @@ function BodyEditor({
         />
       )}
 
-      {(body.type === "form-data" || body.type === "urlencoded") && (
+      {body.type === "urlencoded" && (
         <KeyValueEditor
           pairs={body.formData.length > 0 ? body.formData : [{ id: `kv_formdata_${Date.now()}`, key: "", value: "", enabled: true }]}
           onChange={(formData) => onChange({ ...body, formData })}
           keyPlaceholder="Field"
-          valuePlaceholder="Value"
+          valuePlaceholder={t("request.value")}
+        />
+      )}
+
+      {body.type === "form-data" && (
+        <FormDataEditor
+          pairs={body.formData.length > 0 ? body.formData : [{ id: `kv_formdata_${Date.now()}`, key: "", value: "", enabled: true }]}
+          onChange={(formData) => onChange({ ...body, formData })}
         />
       )}
     </div>
@@ -354,6 +519,7 @@ function AuthEditor({
   auth: AuthConfig;
   onChange: (auth: AuthConfig) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       {/* Auth type selector */}
@@ -424,15 +590,15 @@ function AuthEditor({
         }}
         className={SELECT_CLASS}
       >
-        <option value="none">No Auth</option>
-        <option value="bearer">Bearer Token</option>
-        <option value="basic">Basic Auth</option>
-        <option value="api-key">API Key</option>
-        <option value="oauth2">OAuth 2.0</option>
-        <option value="digest">Digest Auth</option>
-        <option value="aws-v4">AWS Signature v4</option>
-        <option value="jwt-bearer">JWT Bearer</option>
-        <option value="ntlm">NTLM</option>
+        <option value="none">{t("auth.none")}</option>
+        <option value="bearer">{t("auth.bearer")}</option>
+        <option value="basic">{t("auth.basic")}</option>
+        <option value="api-key">{t("auth.apiKey")}</option>
+        <option value="oauth2">{t("auth.oauth2")}</option>
+        <option value="digest">{t("auth.digest")}</option>
+        <option value="aws-v4">{t("auth.awsV4")}</option>
+        <option value="jwt-bearer">{t("auth.jwtBearer")}</option>
+        <option value="ntlm">{t("auth.ntlm")}</option>
       </select>
 
       {/* Auth fields */}
@@ -441,7 +607,7 @@ function AuthEditor({
           type="text"
           value={auth.token}
           onChange={(e) => onChange({ ...auth, token: e.target.value })}
-          placeholder="Token"
+          placeholder={t("auth.token")}
           className={INPUT_CLASS}
         />
       )}
@@ -452,14 +618,14 @@ function AuthEditor({
             type="text"
             value={auth.username}
             onChange={(e) => onChange({ ...auth, username: e.target.value })}
-            placeholder="Username"
+            placeholder={t("auth.username")}
             className={INPUT_CLASS}
           />
           <input
             type="password"
             value={auth.password}
             onChange={(e) => onChange({ ...auth, password: e.target.value })}
-            placeholder="Password"
+            placeholder={t("auth.password")}
             className={INPUT_CLASS}
           />
         </div>
@@ -478,7 +644,7 @@ function AuthEditor({
             type="text"
             value={auth.value}
             onChange={(e) => onChange({ ...auth, value: e.target.value })}
-            placeholder="Value"
+            placeholder={t("request.value")}
             className={INPUT_CLASS}
           />
           <select
@@ -488,8 +654,8 @@ function AuthEditor({
             }
             className={SELECT_CLASS}
           >
-            <option value="header">Header</option>
-            <option value="query">Query Param</option>
+            <option value="header">{t("auth.addToHeader")}</option>
+            <option value="query">{t("auth.addToQuery")}</option>
           </select>
         </div>
       )}
@@ -504,14 +670,14 @@ function AuthEditor({
             type="text"
             value={auth.username}
             onChange={(e) => onChange({ ...auth, username: e.target.value })}
-            placeholder="Username"
+            placeholder={t("auth.username")}
             className={INPUT_CLASS}
           />
           <input
             type="password"
             value={auth.password}
             onChange={(e) => onChange({ ...auth, password: e.target.value })}
-            placeholder="Password"
+            placeholder={t("auth.password")}
             className={INPUT_CLASS}
           />
         </div>
@@ -523,35 +689,35 @@ function AuthEditor({
             type="text"
             value={auth.accessKey}
             onChange={(e) => onChange({ ...auth, accessKey: e.target.value })}
-            placeholder="Access Key"
+            placeholder={t("auth.accessKey")}
             className={INPUT_CLASS}
           />
           <input
             type="password"
             value={auth.secretKey}
             onChange={(e) => onChange({ ...auth, secretKey: e.target.value })}
-            placeholder="Secret Key"
+            placeholder={t("auth.secretKey")}
             className={INPUT_CLASS}
           />
           <input
             type="text"
             value={auth.region}
             onChange={(e) => onChange({ ...auth, region: e.target.value })}
-            placeholder="Region (e.g. us-east-1)"
+            placeholder={t("auth.region")}
             className={INPUT_CLASS}
           />
           <input
             type="text"
             value={auth.service}
             onChange={(e) => onChange({ ...auth, service: e.target.value })}
-            placeholder="Service (e.g. s3, execute-api)"
+            placeholder={t("auth.service")}
             className={INPUT_CLASS}
           />
           <input
             type="text"
             value={auth.sessionToken}
             onChange={(e) => onChange({ ...auth, sessionToken: e.target.value })}
-            placeholder="Session Token (optional)"
+            placeholder={t("auth.sessionToken")}
             className={INPUT_CLASS}
           />
         </div>
@@ -591,7 +757,7 @@ function AuthEditor({
             type="text"
             value={auth.headerPrefix}
             onChange={(e) => onChange({ ...auth, headerPrefix: e.target.value })}
-            placeholder="Header Prefix (default: Bearer)"
+            placeholder={t("auth.headerPrefix")}
             className={INPUT_CLASS}
           />
         </div>
@@ -603,28 +769,28 @@ function AuthEditor({
             type="text"
             value={auth.username}
             onChange={(e) => onChange({ ...auth, username: e.target.value })}
-            placeholder="Username"
+            placeholder={t("auth.username")}
             className={INPUT_CLASS}
           />
           <input
             type="password"
             value={auth.password}
             onChange={(e) => onChange({ ...auth, password: e.target.value })}
-            placeholder="Password"
+            placeholder={t("auth.password")}
             className={INPUT_CLASS}
           />
           <input
             type="text"
             value={auth.domain}
             onChange={(e) => onChange({ ...auth, domain: e.target.value })}
-            placeholder="Domain (optional)"
+            placeholder={t("auth.domain")}
             className={INPUT_CLASS}
           />
           <input
             type="text"
             value={auth.workstation}
             onChange={(e) => onChange({ ...auth, workstation: e.target.value })}
-            placeholder="Workstation (optional)"
+            placeholder={t("auth.workstation")}
             className={INPUT_CLASS}
           />
         </div>
@@ -640,6 +806,7 @@ function OAuth2Editor({
   auth: Extract<AuthConfig, { type: "oauth2" }>;
   onChange: (auth: AuthConfig) => void;
 }) {
+  const { t } = useTranslation();
   const [tokenStatus, setTokenStatus] = useState<OAuthTokenStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -695,7 +862,7 @@ function OAuth2Editor({
     <div className="space-y-2">
       {/* Grant Type */}
       <label className="block">
-        <span className="text-xs text-[var(--color-text-secondary)]">Grant Type</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.grantType")}</span>
         <select
           value={auth.grantType}
           onChange={(e) =>
@@ -703,17 +870,17 @@ function OAuth2Editor({
           }
           className={SELECT_CLASS + " w-full"}
         >
-          <option value="authorization_code">Authorization Code</option>
-          <option value="client_credentials">Client Credentials</option>
-          <option value="implicit">Implicit</option>
-          <option value="password">Password</option>
+          <option value="authorization_code">{t("auth.authorizationCode")}</option>
+          <option value="client_credentials">{t("auth.clientCredentials")}</option>
+          <option value="implicit">{t("auth.implicit")}</option>
+          <option value="password">{t("auth.passwordGrant")}</option>
         </select>
       </label>
 
       {/* Auth URL */}
       {showAuthUrl && (
         <label className="block">
-          <span className="text-xs text-[var(--color-text-secondary)]">Auth URL</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.authUrl")}</span>
           <input
             type="text"
             value={auth.authUrl}
@@ -727,7 +894,7 @@ function OAuth2Editor({
       {/* Token URL */}
       {showTokenUrl && (
         <label className="block">
-          <span className="text-xs text-[var(--color-text-secondary)]">Token URL</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.tokenUrl")}</span>
           <input
             type="text"
             value={auth.tokenUrl}
@@ -741,22 +908,22 @@ function OAuth2Editor({
       {/* Client ID & Secret */}
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-xs text-[var(--color-text-secondary)]">Client ID</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.clientId")}</span>
           <input
             type="text"
             value={auth.clientId}
             onChange={(e) => onChange({ ...auth, clientId: e.target.value })}
-            placeholder="Client ID"
+            placeholder={t("auth.clientId")}
             className={INPUT_CLASS}
           />
         </label>
         <label className="block">
-          <span className="text-xs text-[var(--color-text-secondary)]">Client Secret</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.clientSecret")}</span>
           <input
             type="password"
             value={auth.clientSecret}
             onChange={(e) => onChange({ ...auth, clientSecret: e.target.value })}
-            placeholder="Client Secret"
+            placeholder={t("auth.clientSecret")}
             className={INPUT_CLASS}
           />
         </label>
@@ -764,7 +931,7 @@ function OAuth2Editor({
 
       {/* Scope */}
       <label className="block">
-        <span className="text-xs text-[var(--color-text-secondary)]">Scope</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.scope")}</span>
         <input
           type="text"
           value={auth.scope}
@@ -778,22 +945,22 @@ function OAuth2Editor({
       {showPassword && (
         <div className="grid grid-cols-2 gap-2">
           <label className="block">
-            <span className="text-xs text-[var(--color-text-secondary)]">Username</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.username")}</span>
             <input
               type="text"
               value={auth.username}
               onChange={(e) => onChange({ ...auth, username: e.target.value })}
-              placeholder="Username"
+              placeholder={t("auth.username")}
               className={INPUT_CLASS}
             />
           </label>
           <label className="block">
-            <span className="text-xs text-[var(--color-text-secondary)]">Password</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.password")}</span>
             <input
               type="password"
               value={auth.password}
               onChange={(e) => onChange({ ...auth, password: e.target.value })}
-              placeholder="Password"
+              placeholder={t("auth.password")}
               className={INPUT_CLASS}
             />
           </label>
@@ -803,7 +970,7 @@ function OAuth2Editor({
       {/* Callback URL */}
       {showAuthUrl && (
         <label className="block">
-          <span className="text-xs text-[var(--color-text-secondary)]">Callback URL</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">{t("auth.callbackUrl")}</span>
           <input
             type="text"
             value={auth.callbackUrl}
@@ -823,7 +990,7 @@ function OAuth2Editor({
             onChange={(e) => onChange({ ...auth, usePkce: e.target.checked })}
             className="rounded"
           />
-          Use PKCE (recommended)
+          {t("auth.usePkce")}
         </label>
       )}
 
@@ -834,14 +1001,14 @@ function OAuth2Editor({
           disabled={loading}
           className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Authenticating..." : "Get Token"}
+          {loading ? t("auth.authenticating") : t("auth.getToken")}
         </button>
         {tokenStatus?.hasToken && (
           <button
             onClick={handleClearToken}
             className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           >
-            Clear Token
+            {t("auth.clearToken")}
           </button>
         )}
       </div>
@@ -856,10 +1023,10 @@ function OAuth2Editor({
           }`}
         >
           {tokenStatus.isExpired
-            ? "Token expired"
+            ? t("auth.tokenExpired")
             : tokenStatus.expiresAt
-              ? `Token valid (expires ${new Date(tokenStatus.expiresAt * 1000).toLocaleTimeString()})`
-              : "Token valid (no expiry)"}
+              ? `${t("auth.tokenValid")} (expires ${new Date(tokenStatus.expiresAt * 1000).toLocaleTimeString()})`
+              : `${t("auth.tokenValid")} (no expiry)`}
         </div>
       )}
 

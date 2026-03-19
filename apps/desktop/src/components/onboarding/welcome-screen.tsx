@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FolderOpen, Download, Plus } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { createSampleCollection } from "@/lib/tauri-api";
@@ -13,6 +14,7 @@ export function WelcomeScreen({
   onComplete: (startTour?: boolean) => void;
   onOpenImport: () => void;
 }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const { updateSettings } = useSettingsStore();
 
@@ -58,9 +60,9 @@ export function WelcomeScreen({
     <div className="flex h-screen flex-col items-center justify-center bg-[var(--color-bg)] text-[var(--color-text-primary)]">
       <div className="flex max-w-md flex-col items-center gap-8 text-center">
         <div>
-          <h1 className="text-2xl font-bold">Welcome to ApiArk</h1>
+          <h1 className="text-2xl font-bold">{t("onboarding.welcome")}</h1>
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-            Local-first API development. No accounts. No cloud. Just speed.
+            {t("onboarding.tagline")}
           </p>
         </div>
 
@@ -72,9 +74,9 @@ export function WelcomeScreen({
           >
             <Plus className="h-5 w-5 shrink-0 text-blue-400" />
             <div>
-              <div className="text-sm font-medium">Start from scratch</div>
+              <div className="text-sm font-medium">{t("onboarding.startScratch")}</div>
               <div className="text-xs text-[var(--color-text-dimmed)]">
-                Create a sample collection with example requests
+                {t("onboarding.startScratchDesc")}
               </div>
             </div>
           </button>
@@ -85,9 +87,9 @@ export function WelcomeScreen({
           >
             <Download className="h-5 w-5 shrink-0 text-green-400" />
             <div>
-              <div className="text-sm font-medium">Import existing collection</div>
+              <div className="text-sm font-medium">{t("onboarding.importExisting")}</div>
               <div className="text-xs text-[var(--color-text-dimmed)]">
-                From Postman, Insomnia, Bruno, or OpenAPI
+                {t("onboarding.importExistingDesc")}
               </div>
             </div>
           </button>
@@ -98,9 +100,9 @@ export function WelcomeScreen({
           >
             <FolderOpen className="h-5 w-5 shrink-0 text-yellow-400" />
             <div>
-              <div className="text-sm font-medium">Open a folder</div>
+              <div className="text-sm font-medium">{t("onboarding.openFolder")}</div>
               <div className="text-xs text-[var(--color-text-dimmed)]">
-                Open a directory with an existing ApiArk collection
+                {t("onboarding.openFolderDesc")}
               </div>
             </div>
           </button>
@@ -113,7 +115,7 @@ export function WelcomeScreen({
           }}
           className="text-xs text-[var(--color-text-dimmed)] hover:text-[var(--color-text-secondary)]"
         >
-          Skip for now
+          {t("common.skipForNow")}
         </button>
       </div>
     </div>

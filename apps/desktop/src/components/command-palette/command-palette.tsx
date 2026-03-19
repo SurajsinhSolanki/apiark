@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   Search,
@@ -50,6 +51,7 @@ export function CommandPalette({
   onOpenImport,
   onToggleZen,
 }: CommandPaletteProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,58 +69,58 @@ export function CommandPalette({
     // Static commands
     cmds.push({
       id: "new-request",
-      label: "New HTTP Request",
-      category: "General",
+      label: t("commandPalette.newHttpRequest"),
+      category: t("commandPalette.general"),
       icon: Plus,
       action: () => { newTab(); onOpenChange(false); },
     });
     cmds.push({
       id: "new-graphql",
-      label: "New GraphQL Request",
-      category: "General",
+      label: t("commandPalette.newGraphqlRequest"),
+      category: t("commandPalette.general"),
       icon: Globe,
       action: () => { newGraphQLTab(); onOpenChange(false); },
     });
     cmds.push({
       id: "new-websocket",
-      label: "New WebSocket Connection",
-      category: "General",
+      label: t("commandPalette.newWebsocket"),
+      category: t("commandPalette.general"),
       icon: Zap,
       action: () => { newWebSocketTab(); onOpenChange(false); },
     });
     cmds.push({
       id: "new-sse",
-      label: "New SSE Connection",
-      category: "General",
+      label: t("commandPalette.newSse"),
+      category: t("commandPalette.general"),
       icon: Radio,
       action: () => { newSSETab(); onOpenChange(false); },
     });
     cmds.push({
       id: "new-grpc",
-      label: "New gRPC Request",
-      category: "General",
+      label: t("commandPalette.newGrpc"),
+      category: t("commandPalette.general"),
       icon: Zap,
       action: () => { newGrpcTab(); onOpenChange(false); },
     });
     cmds.push({
       id: "open-settings",
-      label: "Settings",
-      category: "General",
+      label: t("commandPalette.openSettings"),
+      category: t("commandPalette.general"),
       icon: Settings,
       action: () => { onOpenSettings(); onOpenChange(false); },
     });
     cmds.push({
       id: "import-curl",
-      label: "Import cURL",
-      category: "General",
+      label: t("commandPalette.importCurl"),
+      category: t("commandPalette.general"),
       icon: Upload,
       action: () => { onOpenCurlImport(); onOpenChange(false); },
     });
     if (onOpenImport) {
       cmds.push({
         id: "import-collection",
-        label: "Import Collection",
-        category: "General",
+        label: t("commandPalette.importCollection"),
+        category: t("commandPalette.general"),
         icon: Upload,
         action: () => { onOpenImport(); onOpenChange(false); },
       });
@@ -126,24 +128,24 @@ export function CommandPalette({
 
     cmds.push({
       id: "compare-responses",
-      label: "Compare Responses",
-      category: "General",
+      label: t("commandPalette.compareResponses"),
+      category: t("commandPalette.general"),
       icon: Download,
       action: () => { useDiffStore.getState().open(); onOpenChange(false); },
     });
 
     cmds.push({
       id: "mock-server",
-      label: "Mock Servers",
-      category: "General",
+      label: t("commandPalette.mockServers"),
+      category: t("commandPalette.general"),
       icon: Radio,
       action: () => { useMockStore.getState().openDialog(); onOpenChange(false); },
     });
 
     cmds.push({
       id: "monitors",
-      label: "Scheduled Monitors",
-      category: "General",
+      label: t("commandPalette.scheduledMonitors"),
+      category: t("commandPalette.general"),
       icon: Play,
       action: () => { useMonitorStore.getState().openDialog(); onOpenChange(false); },
     });
@@ -151,8 +153,8 @@ export function CommandPalette({
     if (collections.length > 0) {
       cmds.push({
         id: "generate-docs",
-        label: "Generate API Docs",
-        category: "General",
+        label: t("commandPalette.generateDocs"),
+        category: t("commandPalette.general"),
         icon: Globe,
         action: () => {
           const col = collections[0];
@@ -165,8 +167,8 @@ export function CommandPalette({
     if (onOpenRunner) {
       cmds.push({
         id: "run-collection",
-        label: "Run Collection",
-        category: "General",
+        label: t("commandPalette.runCollection"),
+        category: t("commandPalette.general"),
         icon: Play,
         action: () => { onOpenRunner(); onOpenChange(false); },
       });
@@ -175,16 +177,16 @@ export function CommandPalette({
     if (onToggleZen) {
       cmds.push({
         id: "zen-mode",
-        label: "Toggle Zen Mode",
-        category: "View",
+        label: t("commandPalette.toggleZenMode"),
+        category: t("commandPalette.view"),
         action: () => { onToggleZen(); onOpenChange(false); },
       });
     }
 
     cmds.push({
       id: "toggle-terminal",
-      label: "Toggle Terminal",
-      category: "View",
+      label: t("commandPalette.toggleTerminal"),
+      category: t("commandPalette.view"),
       action: () => {
         // Dispatch custom event that App.tsx listens for
         window.dispatchEvent(new CustomEvent("apiark:toggle-terminal"));
@@ -194,8 +196,8 @@ export function CommandPalette({
 
     cmds.push({
       id: "toggle-console",
-      label: "Toggle Console",
-      category: "View",
+      label: t("commandPalette.toggleConsole"),
+      category: t("commandPalette.view"),
       action: () => {
         useConsoleStore.getState().toggle();
         onOpenChange(false);
@@ -208,14 +210,14 @@ export function CommandPalette({
       const activeT = tabs.find((t) => t.id === activeTabId);
       cmds.push({
         id: "pin-tab",
-        label: activeT?.pinned ? "Unpin Tab" : "Pin Tab",
-        category: "Tabs",
+        label: activeT?.pinned ? t("tabs.unpinTab") : t("tabs.pinTab"),
+        category: t("commandPalette.tabs"),
         action: () => { useTabStore.getState().togglePin(activeTabId); onOpenChange(false); },
       });
       cmds.push({
         id: "duplicate-tab",
-        label: "Duplicate Tab",
-        category: "Tabs",
+        label: t("tabs.duplicateTab"),
+        category: t("commandPalette.tabs"),
         action: () => { useTabStore.getState().duplicateTab(activeTabId); onOpenChange(false); },
       });
     }
@@ -225,7 +227,7 @@ export function CommandPalette({
       cmds.push({
         id: `tab-${tab.id}`,
         label: `${tab.method} ${tab.name}`,
-        category: "Tabs",
+        category: t("commandPalette.tabs"),
         action: () => { setActiveTab(tab.id); onOpenChange(false); },
       });
     }
@@ -234,8 +236,8 @@ export function CommandPalette({
     for (const env of environments) {
       cmds.push({
         id: `env-${env.name}`,
-        label: `Switch to ${env.name}`,
-        category: "Environments",
+        label: `${t("commandPalette.switchTo")} ${env.name}`,
+        category: t("commandPalette.environments"),
         action: () => { setActiveEnvironment(env.name); onOpenChange(false); },
       });
     }
@@ -246,7 +248,7 @@ export function CommandPalette({
         cmds.push({
           id: `req-${node.path}`,
           label: `${node.method} ${node.name}`,
-          category: "Requests",
+          category: t("commandPalette.requests"),
           icon: FolderOpen,
           action: () => { openTab(node.path, collectionPath); onOpenChange(false); },
         });
@@ -283,7 +285,7 @@ export function CommandPalette({
     }
 
     return cmds;
-  }, [tabs, collections, environments, newTab, newGraphQLTab, newWebSocketTab, newSSETab, setActiveTab, setActiveEnvironment, openTab, onOpenChange, onOpenSettings, onOpenCurlImport, onOpenRunner]);
+  }, [tabs, collections, environments, newTab, newGraphQLTab, newWebSocketTab, newSSETab, setActiveTab, setActiveEnvironment, openTab, onOpenChange, onOpenSettings, onOpenCurlImport, onOpenRunner, t]);
 
   // Filter commands by query (fuzzy match)
   const filtered = useMemo(() => {
@@ -358,7 +360,7 @@ export function CommandPalette({
               type="text"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
-              placeholder="Type a command..."
+              placeholder={t("commandPalette.placeholder")}
               className="flex-1 bg-transparent text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none"
             />
           </div>
@@ -367,7 +369,7 @@ export function CommandPalette({
           <div ref={listRef} className="max-h-[320px] overflow-y-auto py-1">
             {filtered.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-[var(--color-text-dimmed)]">
-                No commands found
+                {t("commandPalette.noResults")}
               </p>
             ) : (
               filtered.map((cmd, i) => {
@@ -394,8 +396,8 @@ export function CommandPalette({
 
           {/* Footer */}
           <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-text-dimmed)]">
-            <span>Navigate with arrow keys</span>
-            <span>Enter to select</span>
+            <span>{t("commandPalette.navigate")}</span>
+            <span>{t("commandPalette.enterToSelect")}</span>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

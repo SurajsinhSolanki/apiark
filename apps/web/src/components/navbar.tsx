@@ -93,7 +93,7 @@ export default function Navbar() {
             className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
           >
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="ApiArk"
               width={28}
               height={28}

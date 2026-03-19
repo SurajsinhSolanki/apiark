@@ -54,6 +54,9 @@ interface CollectionState {
   openReadOnly: () => Promise<void>;
 }
 
+// Track in-flight openCollection calls to prevent race-condition duplicates
+const openingPaths = new Set<string>();
+
 export const useCollectionStore = create<CollectionState>((set, get) => ({
   collections: [],
   expandedPaths: new Set<string>(),
@@ -61,11 +64,12 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
   migrationPrompt: null,
 
   openCollection: async (path) => {
-    // Don't open the same collection twice
+    // Don't open the same collection twice (or concurrently)
     const existing = get().collections.find(
       (c) => c.type === "collection" && c.path === path,
     );
-    if (existing) return;
+    if (existing || openingPaths.has(path)) return;
+    openingPaths.add(path);
 
     try {
       // Check version before opening
@@ -97,6 +101,8 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
         useToastStore.getState().showError(`Failed to open collection: ${err}`),
       );
       throw err;
+    } finally {
+      openingPaths.delete(path);
     }
   },
 
@@ -201,6 +207,12 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
   },
 
   deleteItem: async (path, collectionName, collectionPath) => {
+    // Close any open tab for this file before deleting, so the file
+    // watcher doesn't show a "file deleted externally" conflict.
+    const tabStore = (await import("@/stores/tab-store")).useTabStore;
+    const openTab = tabStore.getState().tabs.find((t) => t.filePath === path);
+    if (openTab) tabStore.getState().closeTab(openTab.id);
+
     const trashPath = await deleteItemApi(path, collectionName);
     useUndoStore.getState().pushUndo({
       type: "delete",
@@ -215,6 +227,21 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
   renameItem: async (path, newName, collectionPath) => {
     const oldName = path.split("/").pop()?.replace(".yaml", "") ?? "";
     const newPath = await renameItemApi(path, newName);
+
+    // Update any open tab pointing to the old file path
+    const { useTabStore } = await import("@/stores/tab-store");
+    const tabStore = useTabStore.getState();
+    const openTab = tabStore.tabs.find((t) => t.filePath === path);
+    if (openTab) {
+      useTabStore.setState((state) => ({
+        tabs: state.tabs.map((t) =>
+          t.id === openTab.id
+            ? { ...t, filePath: newPath, name: newName, isDirty: false, conflictState: null }
+            : t,
+        ),
+      }));
+    }
+
     useUndoStore.getState().pushUndo({
       type: "rename",
       oldPath: path,

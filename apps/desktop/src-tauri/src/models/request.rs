@@ -52,6 +52,9 @@ pub struct KeyValuePair {
     pub value: String,
     #[serde(default = "default_true")]
     pub enabled: bool,
+    /// For form-data: "file" means value is a file path whose content is embedded
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value_type: Option<String>,
 }
 
 impl KeyValuePair {
@@ -61,6 +64,7 @@ impl KeyValuePair {
             key,
             value,
             enabled,
+            value_type: None,
         }
     }
 }

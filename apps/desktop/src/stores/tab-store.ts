@@ -56,6 +56,7 @@ interface TabState {
   setParams: (params: KeyValuePair[]) => void;
   setBody: (body: RequestBody) => void;
   setAuth: (auth: AuthConfig) => void;
+  setPathVariables: (pathVariables: Record<string, string>) => void;
   setPreRequestScript: (script: string | null) => void;
   setPostResponseScript: (script: string | null) => void;
   setTestScript: (script: string | null) => void;
@@ -214,6 +215,7 @@ function createEmptyTab(overrides?: Partial<Tab>): Tab {
     url: "",
     headers: [emptyKvRow()],
     params: [emptyKvRow()],
+    pathVariables: {},
     body: { type: "none", content: "", formData: [] },
     auth: { type: "none" },
     preRequestScript: null,
@@ -242,6 +244,7 @@ function takeSnapshot(tab: Tab): TabSnapshot {
     url: tab.url,
     headers: JSON.parse(JSON.stringify(tab.headers)),
     params: JSON.parse(JSON.stringify(tab.params)),
+    pathVariables: { ...tab.pathVariables },
     body: JSON.parse(JSON.stringify(tab.body)),
     auth: JSON.parse(JSON.stringify(tab.auth)),
     preRequestScript: tab.preRequestScript,
@@ -262,16 +265,27 @@ function requestFileToTab(
   );
   if (headers.length === 0) headers.push(emptyKvRow());
 
-  // Merge params from file AND from URL query string
-  const fileParams: KeyValuePair[] = Object.entries(file.params || {}).map(
-    ([key, value]) => ({ id: kvId(), key, value, enabled: true }),
+  // Separate path variables from query params.
+  // Path variables match :paramName placeholders in the URL.
+  const urlPathVarNames = new Set(
+    (file.url.match(/:([\w]+)/g) || []).map((m) => m.slice(1)),
   );
+  const pathVariables: Record<string, string> = {};
+  const fileQueryParams: KeyValuePair[] = [];
+  for (const [key, value] of Object.entries(file.params || {})) {
+    if (urlPathVarNames.has(key)) {
+      pathVariables[key] = value;
+    } else {
+      fileQueryParams.push({ id: kvId(), key, value, enabled: true });
+    }
+  }
+
   const { params: urlParams } = parseUrlParams(file.url);
-  // Combine: URL query params first, then file params (avoiding duplicates)
+  // Combine: URL query params first, then remaining file params (avoiding duplicates)
   const seenKeys = new Set(urlParams.map((p) => p.key));
   const mergedParams = [
     ...urlParams,
-    ...fileParams.filter((p) => !seenKeys.has(p.key)),
+    ...fileQueryParams.filter((p) => !seenKeys.has(p.key)),
   ];
   const params = mergedParams.length > 0 ? [...mergedParams, emptyKvRow()] : [emptyKvRow()];
 
@@ -340,6 +354,7 @@ function requestFileToTab(
     url: file.url,
     headers,
     params,
+    pathVariables,
     body,
     auth: file.auth || { type: "none" },
     preRequestScript: file.preRequestScript ?? null,
@@ -368,7 +383,9 @@ function tabToRequestFile(tab: Tab): RequestFile {
     }
   }
 
-  // Params are synced into the URL query string — no separate field needed
+  // Save path variables to the params field
+  const params: Record<string, string> | undefined =
+    Object.keys(tab.pathVariables).length > 0 ? { ...tab.pathVariables } : undefined;
 
   // For GraphQL tabs, serialize the query/variables into a JSON body
   // so it's detected as GraphQL when loaded back (requestFileToTab checks for body.content with "query")
@@ -394,7 +411,7 @@ function tabToRequestFile(tab: Tab): RequestFile {
     method: tab.protocol === "graphql" ? "POST" : tab.method,
     url: tab.url, // URL already contains query params (synced)
     headers,
-    // Don't save params separately — they're in the URL query string
+    params,
     auth: tab.auth.type !== "none" ? tab.auth : undefined,
     body,
     preRequestScript: tab.preRequestScript || undefined,
@@ -619,6 +636,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     const newUrl = buildUrlWithParams(baseUrl, params);
     return { params, url: newUrl };
   })),
+  setPathVariables: (pathVariables) => set((state) => updateActiveTab(state, () => ({ pathVariables }))),
   setBody: (body) => set((state) => updateActiveTab(state, () => ({ body }))),
   setAuth: (auth) => set((state) => updateActiveTab(state, () => ({ auth }))),
   setPreRequestScript: (script) => set((state) => updateActiveTab(state, () => ({ preRequestScript: script }))),
@@ -685,9 +703,17 @@ export const useTabStore = create<TabState>((set, get) => ({
       }
     }
 
+    // Resolve path variables (:paramName → value) in the URL before sending
+    let resolvedUrl = tab.url.trim();
+    for (const [key, value] of Object.entries(tab.pathVariables)) {
+      if (value) {
+        resolvedUrl = resolvedUrl.replace(new RegExp(`:${key}\\b`, "g"), encodeURIComponent(value));
+      }
+    }
+
     const requestParams = {
       method: tab.protocol === "graphql" ? ("POST" as const) : tab.method,
-      url: tab.url.trim(),
+      url: resolvedUrl,
       headers,
       // Params are already synced into the URL query string, so send empty
       // to avoid the Rust side double-appending them
@@ -974,19 +1000,52 @@ export const useTabStore = create<TabState>((set, get) => ({
       maximized: cachedMaximized,
     };
 
-    savePersistedState({
-      tabs: persistedTabs,
-      activeTabIndex: activeIndex >= 0 ? activeIndex : null,
-      windowState,
-    }).catch(() => { /* Tab persistence failure is non-critical */ });
+    // Persist all opened collection paths (not just those with open tabs)
+    import("@/stores/collection-store").then(({ useCollectionStore }) => {
+      const collections = useCollectionStore.getState().collections
+        .filter((c) => c.type === "collection")
+        .map((c) => c.path);
+
+      savePersistedState({
+        tabs: persistedTabs,
+        activeTabIndex: activeIndex >= 0 ? activeIndex : null,
+        windowState,
+        collections,
+      }).catch(() => { /* Tab persistence failure is non-critical */ });
+    }).catch(() => {
+      // Fallback: save without collections if store not available
+      savePersistedState({
+        tabs: persistedTabs,
+        activeTabIndex: activeIndex >= 0 ? activeIndex : null,
+        windowState,
+      }).catch(() => {});
+    });
   },
 
   restoreTabs: async () => {
     try {
       const persisted = await loadPersistedState();
-      if (persisted.tabs.length === 0) return;
 
       const collectionPaths = new Set<string>();
+
+      // Restore persisted collections first (even if no tabs are open)
+      if (persisted.collections?.length) {
+        for (const path of persisted.collections) {
+          collectionPaths.add(path);
+        }
+      }
+
+      if (persisted.tabs.length === 0) {
+        // No tabs to restore, but still re-open collections
+        if (collectionPaths.size > 0) {
+          import("@/stores/collection-store").then(({ useCollectionStore }) => {
+            for (const path of collectionPaths) {
+              useCollectionStore.getState().openCollection(path).catch(() => {});
+            }
+          });
+        }
+        return;
+      }
       const seenPaths = new Set<string>();
 
       for (const pt of persisted.tabs) {
@@ -1017,7 +1076,8 @@ export const useTabStore = create<TabState>((set, get) => ({
         }
       }
 
-      // Re-open collections in the sidebar
+      // Re-open collections in the sidebar (persisted collections were
+      // already added above; this also includes any from open tabs).
       if (collectionPaths.size > 0) {
         import("@/stores/collection-store").then(({ useCollectionStore }) => {
           for (const path of collectionPaths) {

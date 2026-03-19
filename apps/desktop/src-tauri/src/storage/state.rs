@@ -38,6 +38,8 @@ pub struct PersistedState {
     pub active_tab_index: Option<usize>,
     #[serde(default)]
     pub window_state: Option<WindowState>,
+    #[serde(default)]
+    pub collections: Vec<String>,
 }
 
 pub fn load_persisted_state(path: &Path) -> PersistedState {

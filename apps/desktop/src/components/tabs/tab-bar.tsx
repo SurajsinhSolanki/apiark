@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { HttpMethod, Tab } from "@apiark/types";
 import { useTabStore } from "@/stores/tab-store";
-import { Plus, X, Globe, Zap, Radio, ChevronDown, Pin, Save } from "lucide-react";
+import { Plus, X, Globe, Zap, Radio, ChevronDown, Pin, Save, Terminal } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -72,6 +73,7 @@ function SortableTab({
   onTogglePin: () => void;
   onDuplicate: () => void;
 }) {
+  const { t } = useTranslation();
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const {
@@ -148,14 +150,14 @@ function SortableTab({
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           {[
-            { label: tab.pinned ? "Unpin Tab" : "Pin Tab", action: onTogglePin },
-            { label: "Duplicate Tab", action: onDuplicate },
+            { label: tab.pinned ? t("tabs.unpinTab") : t("tabs.pinTab"), action: onTogglePin },
+            { label: t("tabs.duplicateTab"), action: onDuplicate },
             null,
-            { label: "Close", action: onClose },
-            { label: "Close Others", action: onCloseOthers },
-            { label: "Close All", action: onCloseAll },
+            { label: t("tabs.close"), action: onClose },
+            { label: t("tabs.closeOthers"), action: onCloseOthers },
+            { label: t("tabs.closeAll"), action: onCloseAll },
             null,
-            { label: "Move to New Window", action: onDetach },
+            { label: t("tabs.moveToNewWindow"), action: onDetach },
           ].map((item, i) =>
             item === null ? (
               <div key={i} className="my-1 border-t border-[var(--color-border)]" />
@@ -176,6 +178,7 @@ function SortableTab({
 }
 
 function NewTabDropdown() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { newTab, newGraphQLTab, newWebSocketTab, newSSETab, newGrpcTab } = useTabStore();
@@ -192,7 +195,7 @@ function NewTabDropdown() {
   }, [open]);
 
   const items = [
-    { label: "HTTP Request", icon: Globe, action: newTab },
+    { label: t("tabs.httpRequest"), icon: Globe, action: newTab },
     { label: "GraphQL", icon: Globe, action: newGraphQLTab, color: "text-violet-400" },
     { label: "WebSocket", icon: Zap, action: newWebSocketTab, color: "text-cyan-400" },
     { label: "SSE", icon: Radio, action: newSSETab, color: "text-orange-400" },
@@ -207,7 +210,7 @@ function NewTabDropdown() {
         title="New Tab"
       >
         <Plus className="h-4 w-4" strokeWidth={2.5} />
-        <span>New</span>
+        <span>{t("sidebar.new")}</span>
         <ChevronDown className="h-3 w-3 opacity-70" />
       </button>
       {open && (
@@ -225,6 +228,17 @@ function NewTabDropdown() {
               {item.label}
             </button>
           ))}
+          <div className="my-1 border-t border-[var(--color-border)]" />
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("apiark:open-curl-import"));
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-accent-glow)]"
+          >
+            <Terminal className="h-4 w-4 text-[var(--color-text-muted)]" />
+            {t("tabs.importCurl")}
+          </button>
         </div>
       )}
     </div>
@@ -232,6 +246,7 @@ function NewTabDropdown() {
 }
 
 export function TabBar() {
+  const { t } = useTranslation();
   const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs, reorderTabs, detachTab, togglePin, duplicateTab, save } = useTabStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -304,7 +319,7 @@ export function TabBar() {
             title="Save (Ctrl+S)"
           >
             <Save className="h-3.5 w-3.5" />
-            Save
+            {t("common.save")}
           </button>
         )}
         <NewTabDropdown />

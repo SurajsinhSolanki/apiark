@@ -233,13 +233,20 @@ pub async fn send_request_with_scripts(
                 variables: HashMap::new(),
             };
 
-            let result = execute_script(script, ctx, ScriptPhase::PostResponse)
-                .map_err(|e| format!("Post-response script error: {e}"))?;
-
-            apply_env_mutations(&mut vars, &result.env_mutations);
-            env_mutations.extend(result.env_mutations);
-            all_console.extend(result.console_output);
-            all_tests.extend(result.test_results);
+            match execute_script(script, ctx, ScriptPhase::PostResponse) {
+                Ok(result) => {
+                    apply_env_mutations(&mut vars, &result.env_mutations);
+                    env_mutations.extend(result.env_mutations);
+                    all_console.extend(result.console_output);
+                    all_tests.extend(result.test_results);
+                }
+                Err(e) => {
+                    all_console.push(ConsoleEntry {
+                        level: "error".to_string(),
+                        message: format!("Post-response script error: {e}"),
+                    });
+                }
+            }
         }
     }
 
@@ -273,13 +280,20 @@ pub async fn send_request_with_scripts(
                 variables: HashMap::new(),
             };
 
-            let result = execute_script(script, ctx, ScriptPhase::PostResponse)
-                .map_err(|e| format!("Test script error: {e}"))?;
-
-            apply_env_mutations(&mut vars, &result.env_mutations);
-            env_mutations.extend(result.env_mutations);
-            all_console.extend(result.console_output);
-            all_tests.extend(result.test_results);
+            match execute_script(script, ctx, ScriptPhase::PostResponse) {
+                Ok(result) => {
+                    apply_env_mutations(&mut vars, &result.env_mutations);
+                    env_mutations.extend(result.env_mutations);
+                    all_console.extend(result.console_output);
+                    all_tests.extend(result.test_results);
+                }
+                Err(e) => {
+                    all_console.push(ConsoleEntry {
+                        level: "error".to_string(),
+                        message: format!("Test script error: {e}"),
+                    });
+                }
+            }
         }
     }
 
@@ -346,11 +360,13 @@ fn interpolate_params(
             .form_data
             .iter()
             .map(|fd| {
-                KeyValuePair::new(
+                let mut kv = KeyValuePair::new(
                     interpolation::interpolate(&fd.key, vars),
                     interpolation::interpolate(&fd.value, vars),
                     fd.enabled,
-                )
+                );
+                kv.value_type = fd.value_type.clone();
+                kv
             })
             .collect();
         interpolated.body = Some(new_body);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useCollectionStore } from "@/stores/collection-store";
@@ -15,6 +16,7 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ onToggleTerminal, terminalOpen }: StatusBarProps) {
+  const { t } = useTranslation();
   const [appVersion, setAppVersion] = useState("");
   useEffect(() => { getVersion().then(setAppVersion); }, []);
   const activeEnv = useEnvironmentStore((s) => s.activeEnvironmentName);
@@ -79,7 +81,7 @@ export function StatusBar({ onToggleTerminal, terminalOpen }: StatusBarProps) {
               ? "bg-[var(--color-accent)]/20 text-[var(--color-accent)]"
               : "text-[var(--color-text-dimmed)] hover:text-[var(--color-text-secondary)]"
           }`}
-          title="Toggle Console"
+          title={t("commandPalette.toggleConsole")}
         >
           <ScrollText className="h-4 w-4" />
           {consoleEntries.length > 0 && (

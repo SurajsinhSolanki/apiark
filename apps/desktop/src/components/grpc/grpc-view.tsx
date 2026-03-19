@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { grpcLoadProto, grpcCallUnary } from "@/lib/tauri-api";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -5,6 +6,7 @@ import type { GrpcState } from "@apiark/types";
 import { Play, Upload } from "lucide-react";
 
 export function GrpcView() {
+  const { t } = useTranslation();
   const tab = useActiveTab();
 
   if (!tab || tab.protocol !== "grpc" || !tab.grpc) {
@@ -90,7 +92,7 @@ export function GrpcView() {
           className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
         >
           <Upload className="h-3 w-3" />
-          Load Proto
+          {t("grpc.loadProto")}
         </button>
         <button
           onClick={handleSend}
@@ -98,7 +100,7 @@ export function GrpcView() {
           className="flex items-center gap-1 rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           <Play className="h-3.5 w-3.5" />
-          {grpc.loading ? "Sending..." : "Send"}
+          {grpc.loading ? t("request.sending") : t("request.send")}
         </button>
       </div>
 
@@ -147,7 +149,7 @@ export function GrpcView() {
           {/* Request JSON editor */}
           <div className="flex-1 overflow-auto p-3">
             <label className="mb-1 block text-xs font-medium text-[var(--color-text-muted)]">
-              Request Body (JSON)
+              {t("grpc.requestBody")}
             </label>
             <textarea
               value={grpc.requestJson}
@@ -191,11 +193,11 @@ export function GrpcView() {
             </div>
           ) : grpc.services.length === 0 ? (
             <div className="flex flex-1 items-center justify-center text-sm text-[var(--color-text-dimmed)]">
-              Load a .proto file to get started
+              {t("grpc.loadProtoToStart")}
             </div>
           ) : (
             <div className="flex flex-1 items-center justify-center text-sm text-[var(--color-text-dimmed)]">
-              Select a method and send a request
+              {t("grpc.selectMethodToSend")}
             </div>
           )}
         </div>

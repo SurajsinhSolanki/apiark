@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, FolderOpen, ChevronRight, ChevronDown } from "lucide-react";
 import { useCollectionStore } from "@/stores/collection-store";
@@ -17,6 +18,7 @@ export function SaveAsDialog({
   defaultName,
   onSave,
 }: SaveAsDialogProps) {
+  const { t } = useTranslation();
   const collections = useCollectionStore((s) => s.collections);
   const [name, setName] = useState(defaultName);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function SaveAsDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
             <Dialog.Title className="text-sm font-medium text-[var(--color-text-primary)]">
-              Save Request
+              {t("request.saveRequest")}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)]">
               <X className="h-4 w-4" />
@@ -79,13 +81,13 @@ export function SaveAsDialog({
             {/* Request name */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-                Request Name
+                {t("request.requestName")}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My Request"
+                placeholder={t("request.requestNamePlaceholder")}
                 autoFocus
                 className="w-full rounded bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                 onKeyDown={(e) => {
@@ -94,7 +96,7 @@ export function SaveAsDialog({
               />
               {name.trim() && (
                 <p className="text-[11px] text-[var(--color-text-dimmed)]">
-                  Filename: {filename}.yaml
+                  {t("request.filename")} {filename}.yaml
                 </p>
               )}
             </div>
@@ -136,14 +138,14 @@ export function SaveAsDialog({
           {/* Actions */}
           <div className="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
             <Dialog.Close className="rounded px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]">
-              Cancel
+              {t("common.cancel")}
             </Dialog.Close>
             <button
               onClick={handleSave}
               disabled={!canSave}
               className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              Save
+              {t("common.save")}
             </button>
           </div>
         </Dialog.Content>

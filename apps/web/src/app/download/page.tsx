@@ -54,6 +54,7 @@ const PLATFORM_CONFIG = {
     installSteps: [
       "Open the downloaded .dmg file",
       "Drag ApiArk to your Applications folder",
+      'If macOS says the app is "damaged", open Terminal and run: xattr -cr /Applications/ApiArk.app',
       "Launch from Applications or Spotlight",
     ],
   },
@@ -70,6 +71,7 @@ const PLATFORM_CONFIG = {
     installSteps: [
       "Open the downloaded .dmg file",
       "Drag ApiArk to your Applications folder",
+      'If macOS says the app is "damaged", open Terminal and run: xattr -cr /Applications/ApiArk.app',
       "Launch from Applications or Spotlight",
     ],
   },
@@ -85,6 +87,7 @@ const PLATFORM_CONFIG = {
     cli: { pattern: "cli-windows-x86_64.exe", label: "apiark CLI (.exe)" },
     installSteps: [
       "Run the downloaded .exe installer",
+      'If Windows SmartScreen appears, click "More info" then "Run anyway"',
       "Follow the installation wizard",
       "Launch ApiArk from the Start menu",
     ],

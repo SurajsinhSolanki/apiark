@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { CollectionNode, CollectionDefaults, HttpMethod } from "@apiark/types";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useTabStore } from "@/stores/tab-store";
@@ -352,6 +353,7 @@ function TreeNodeRow({
   flat: FlatNode;
   dragHandleProps: Record<string, unknown>;
 }) {
+  const { t } = useTranslation();
   const { node, depth, collectionPath, collectionName } = flat;
   const { expandedPaths, toggleExpand, createRequest, createFolder, deleteItem, renameItem } =
     useCollectionStore();
@@ -405,7 +407,7 @@ function TreeNodeRow({
     try {
       const { ask } = await import("@tauri-apps/plugin-dialog");
       const confirmed = await ask(`Delete "${node.name}"?`, {
-        title: "Confirm Delete",
+        title: t("confirmDelete.title"),
         kind: "warning",
       });
       if (!confirmed) return;
@@ -450,9 +452,9 @@ function TreeNodeRow({
             <GripVertical className="h-3 w-3 text-[var(--color-text-muted)]" />
           </span>
           <span
-            className={`w-9 shrink-0 text-[10px] font-bold ${METHOD_COLORS[node.method]}`}
+            className={`w-9 shrink-0 text-[10px] font-bold ${node.isGraphql ? "text-violet-400" : METHOD_COLORS[node.method]}`}
           >
-            {node.method}
+            {node.isGraphql ? "GQL" : node.method}
           </span>
           {renaming ? (
             <input
@@ -482,7 +484,7 @@ function TreeNodeRow({
                 handleRename();
               }}
               className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
-              title="Rename"
+              title={t("common.rename")}
             >
               <Pencil className="h-3 w-3" />
             </button>
@@ -492,7 +494,7 @@ function TreeNodeRow({
                 handleDelete();
               }}
               className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-red-500/20 hover:text-red-400"
-              title="Delete"
+              title={t("common.delete")}
             >
               <Trash2 className="h-3 w-3" />
             </button>
@@ -506,8 +508,8 @@ function TreeNodeRow({
             y={contextMenu.y}
             onClose={closeContextMenu}
             items={[
-              { label: "Rename", icon: Pencil, onClick: handleRename },
-              { label: "Delete", icon: Trash2, onClick: handleDelete, danger: true },
+              { label: t("common.rename"), icon: Pencil, onClick: handleRename },
+              { label: t("common.delete"), icon: Trash2, onClick: handleDelete, danger: true },
             ]}
           />
         )}
@@ -557,7 +559,42 @@ function TreeNodeRow({
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="truncate text-[var(--color-text-primary)]">{node.name}</span>
+          <span className="flex-1 truncate text-[var(--color-text-primary)]">{node.name}</span>
+        )}
+        {/* Action buttons — visible on hover */}
+        {!renaming && (
+          <span className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100">
+            {node.type === "folder" && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleRename(); }}
+                  className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+                  title={t("common.rename")}
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                  className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-red-500/20 hover:text-red-400"
+                  title={t("common.delete")}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </>
+            )}
+            {node.type === "collection" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  useCollectionStore.getState().closeCollection(collectionPath);
+                }}
+                className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+                title={t("sidebar.closeCollection")}
+              >
+                <FolderX className="h-3 w-3" />
+              </button>
+            )}
+          </span>
         )}
       </button>
 
@@ -567,12 +604,12 @@ function TreeNodeRow({
           y={contextMenu.y}
           onClose={closeContextMenu}
           items={[
-            { label: "New Request", icon: FilePlus, onClick: handleNewRequest },
-            { label: "New Folder", icon: FolderPlus, onClick: handleNewFolder },
+            { label: t("sidebar.newRequest"), icon: FilePlus, onClick: handleNewRequest },
+            { label: t("sidebar.newFolder"), icon: FolderPlus, onClick: handleNewFolder },
             ...(node.type === "collection"
               ? [
                   {
-                    label: "Export as Postman",
+                    label: t("sidebar.exportPostman"),
                     icon: Download,
                     onClick: () => {
                       closeContextMenu();
@@ -584,7 +621,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Export as OpenAPI",
+                    label: t("sidebar.exportOpenapi"),
                     icon: Download,
                     onClick: () => {
                       closeContextMenu();
@@ -596,7 +633,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Export as ApiArk ZIP",
+                    label: t("sidebar.exportApiark"),
                     icon: Download,
                     onClick: () => {
                       closeContextMenu();
@@ -608,7 +645,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Start Mock Server",
+                    label: t("sidebar.startMockServer"),
                     icon: Radio,
                     onClick: () => {
                       closeContextMenu();
@@ -616,7 +653,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Generate Docs",
+                    label: t("sidebar.generateDocs"),
                     icon: FileText,
                     onClick: () => {
                       closeContextMenu();
@@ -624,7 +661,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Cookie Settings",
+                    label: t("sidebar.cookieSettings"),
                     icon: Cookie,
                     onClick: () => {
                       closeContextMenu();
@@ -632,7 +669,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Close Collection",
+                    label: t("sidebar.closeCollection"),
                     icon: FolderX,
                     onClick: () => {
                       closeContextMenu();
@@ -640,7 +677,7 @@ function TreeNodeRow({
                     },
                   },
                   {
-                    label: "Delete Collection",
+                    label: t("sidebar.deleteCollection"),
                     icon: Trash2,
                     onClick: async () => {
                       closeContextMenu();
@@ -648,11 +685,22 @@ function TreeNodeRow({
                         const { ask } = await import("@tauri-apps/plugin-dialog");
                         const confirmed = await ask(
                           `Delete collection "${node.name}"? This will move the entire collection to trash.`,
-                          { title: "Confirm Delete", kind: "warning" },
+                          { title: t("confirmDelete.title"), kind: "warning" },
                         );
                         if (!confirmed) return;
-                        await deleteItem(node.path, collectionName, collectionPath);
+                        // Close the collection first so the file watcher and
+                        // refreshCollection don't race against the deletion.
                         useCollectionStore.getState().closeCollection(collectionPath);
+                        const { deleteItem: deleteItemApi } = await import("@/lib/tauri-api");
+                        const trashPath = await deleteItemApi(node.path, collectionName);
+                        const { useUndoStore } = await import("@/stores/undo-store");
+                        useUndoStore.getState().pushUndo({
+                          type: "delete",
+                          path: node.path,
+                          collectionPath,
+                          collectionName,
+                          trashPath,
+                        });
                       } catch (err) {
                         import("@/stores/toast-store").then(({ useToastStore }) =>
                           useToastStore.getState().showError(`Failed to delete collection: ${err}`),
@@ -663,8 +711,8 @@ function TreeNodeRow({
                   },
                 ]
               : [
-                  { label: "Rename", icon: Pencil, onClick: handleRename },
-                  { label: "Delete", icon: Trash2, onClick: handleDelete, danger: true },
+                  { label: t("common.rename"), icon: Pencil, onClick: handleRename },
+                  { label: t("common.delete"), icon: Trash2, onClick: handleDelete, danger: true },
                 ]),
           ]}
         />
@@ -688,6 +736,7 @@ function CookieSettingsDialog({
   collectionPath: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [defaults, setDefaults] = useState<CollectionDefaults | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -722,7 +771,7 @@ function CookieSettingsDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl focus:outline-none">
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3">
             <Dialog.Title className="text-sm font-semibold text-[var(--color-text-primary)]">
-              Cookie Settings
+              {t("sidebar.cookieSettings")}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-primary)]">
               <X className="h-4 w-4" />
@@ -730,24 +779,24 @@ function CookieSettingsDialog({
           </div>
           <div className="space-y-3 p-5">
             {loading ? (
-              <p className="text-sm text-[var(--color-text-muted)]">Loading...</p>
+              <p className="text-sm text-[var(--color-text-muted)]">{t("common.loading")}</p>
             ) : defaults ? (
               <>
                 <ToggleRow
-                  label="Send Cookies"
-                  description="Automatically send stored cookies with requests"
+                  label={t("cookies.sendCookies")}
+                  description={t("cookies.sendCookiesDesc")}
                   checked={defaults.sendCookies}
                   onChange={(v) => toggle("sendCookies", v)}
                 />
                 <ToggleRow
-                  label="Store Cookies"
-                  description="Automatically store cookies from responses"
+                  label={t("cookies.storeCookies")}
+                  description={t("cookies.storeCookiesDesc")}
                   checked={defaults.storeCookies}
                   onChange={(v) => toggle("storeCookies", v)}
                 />
                 <ToggleRow
-                  label="Persist Cookies"
-                  description="Save cookies to disk across app restarts"
+                  label={t("cookies.persistCookies")}
+                  description={t("cookies.persistCookiesDesc")}
                   checked={defaults.persistCookies}
                   onChange={(v) => toggle("persistCookies", v)}
                 />

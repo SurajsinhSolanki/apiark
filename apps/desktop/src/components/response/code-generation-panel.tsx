@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Copy, Check } from "lucide-react";
 import { useActiveTab } from "@/stores/tab-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
@@ -18,12 +19,43 @@ function resolveVariables(str: string, vars: Record<string, string>): string {
   return str.replace(/\{\{([\w$]+)\}\}/g, (_, name) => vars[name] ?? `{{${name}}}`);
 }
 
+/** Replace :paramName path variables in a URL with their values */
+function resolvePathVariables(url: string, pathVars: Record<string, string>): string {
+  let resolved = url;
+  for (const [key, value] of Object.entries(pathVars)) {
+    if (value) {
+      resolved = resolved.replace(new RegExp(`:${key}\\b`, "g"), encodeURIComponent(value));
+    }
+  }
+  return resolved;
+}
+
 /** Create a copy of the tab with all variables resolved */
 function resolveTab(tab: Tab, vars: Record<string, string>): Tab {
+  // For GraphQL tabs, build the JSON body from tab.graphql
+  let body = tab.body;
+  let method = tab.method;
+  let headers = tab.headers;
+  if (tab.protocol === "graphql" && tab.graphql) {
+    method = "POST";
+    const gqlBody: Record<string, unknown> = { query: tab.graphql.query };
+    try {
+      const v = JSON.parse(tab.graphql.variables);
+      if (Object.keys(v).length > 0) gqlBody.variables = v;
+    } catch { /* ignore */ }
+    if (tab.graphql.operationName) gqlBody.operationName = tab.graphql.operationName;
+    body = { type: "json", content: JSON.stringify(gqlBody, null, 2), formData: [] };
+    // Ensure Content-Type header
+    if (!headers.some((h) => h.key.toLowerCase() === "content-type" && h.enabled)) {
+      headers = [{ id: "ct", key: "Content-Type", value: "application/json", enabled: true }, ...headers];
+    }
+  }
+
   return {
     ...tab,
-    url: resolveVariables(tab.url, vars),
-    headers: tab.headers.map((h) => ({
+    method,
+    url: resolveVariables(resolvePathVariables(tab.url, tab.pathVariables), vars),
+    headers: headers.map((h) => ({
       ...h,
       key: resolveVariables(h.key, vars),
       value: resolveVariables(h.value, vars),
@@ -34,8 +66,8 @@ function resolveTab(tab: Tab, vars: Record<string, string>): Tab {
       value: resolveVariables(p.value, vars),
     })),
     body: {
-      ...tab.body,
-      content: resolveVariables(tab.body.content, vars),
+      ...body,
+      content: resolveVariables(body.content, vars),
     },
     auth: tab.auth.type === "bearer"
       ? { ...tab.auth, token: resolveVariables(tab.auth.token, vars) }
@@ -46,6 +78,7 @@ function resolveTab(tab: Tab, vars: Record<string, string>): Tab {
 }
 
 export function CodeGenerationPanel() {
+  const { t } = useTranslation();
   const tab = useActiveTab();
   const [language, setLanguage] = useState<Language>("curl");
   const [copied, setCopied] = useState(false);
@@ -110,7 +143,7 @@ export function CodeGenerationPanel() {
           ) : (
             <>
               <Copy className="h-3 w-3" />
-              Copy
+              {t("common.copy")}
             </>
           )}
         </button>

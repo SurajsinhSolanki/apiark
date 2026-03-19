@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronRight, ChevronLeft, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface TourStep {
   /** CSS selector for the element to highlight */
   target: string;
-  /** Title of the step */
-  title: string;
+  /** Translation key for the title */
+  titleKey: string;
   /** Description text */
   description: string;
   /** Preferred placement of the tooltip */
@@ -15,84 +16,84 @@ export interface TourStep {
 const TOUR_STEPS: TourStep[] = [
   {
     target: "[data-tour='sidebar']",
-    title: "Collections Sidebar",
+    titleKey: "tour.collectionsSidebar",
     description:
       "This is where all your API collections live. Open a folder, create collections, and organize requests into folders. You can search and drag to reorder.",
     placement: "right",
   },
   {
     target: "[data-tour='environment']",
-    title: "Environment Selector",
+    titleKey: "tour.environmentSelector",
     description:
       "Switch between environments (dev, staging, prod) here. Each environment has its own variables like base URLs and API keys. Use {{variableName}} in your requests to reference them.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tabs']",
-    title: "Request Tabs",
+    titleKey: "tour.requestTabs",
     description:
       "Work on multiple requests at once, just like browser tabs. Drag to reorder, and a dot means unsaved changes.",
     placement: "bottom",
   },
   {
     target: "[data-tour='url-bar']",
-    title: "URL Bar",
+    titleKey: "tour.urlBar",
     description:
       "Enter your API endpoint here. Pick the HTTP method on the left — GET fetches data, POST creates, PUT/PATCH updates, DELETE removes. Press Ctrl+Enter to send.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-params']",
-    title: "Query Parameters",
+    titleKey: "tour.queryParameters",
     description:
       "Query parameters are key-value pairs appended to the URL (e.g. ?page=1&limit=10). Add them here instead of typing them manually in the URL — it's cleaner and easier to toggle on/off.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-headers']",
-    title: "Headers",
+    titleKey: "tour.requestHeaders",
     description:
       "HTTP headers are metadata sent with your request. Common ones include Content-Type (what format your data is in), Authorization (your credentials), and Accept (what format you want back).",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-body']",
-    title: "Request Body",
+    titleKey: "tour.requestBody",
     description:
       "The body is the data you send with POST/PUT/PATCH requests. Choose a format — JSON is the most common for APIs. GET and DELETE requests typically don't have a body.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-auth']",
-    title: "Authentication",
+    titleKey: "tour.authentication",
     description:
       "Most APIs require authentication. Choose your method — Bearer Token is the most common (paste your token), or use Basic Auth (username/password), API Key, OAuth 2.0, and more.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-scripts']",
-    title: "Scripts",
+    titleKey: "tour.scripts",
     description:
       "Write JavaScript that runs before sending (pre-request) or after receiving (post-response). Use scripts to set variables dynamically, chain requests, or transform data.",
     placement: "bottom",
   },
   {
     target: "[data-tour='tab-tests']",
-    title: "Tests & Assertions",
+    titleKey: "tour.testsAssertions",
     description:
       "Write tests to automatically verify your API responses — check status codes, response body values, headers, and response times. Tests run after every request.",
     placement: "bottom",
   },
   {
     target: "[data-tour='response-panel']",
-    title: "Response Viewer",
+    titleKey: "tour.responseViewer",
     description:
       "After sending a request, the response appears here — the body (with syntax highlighting), headers, cookies, status code, timing, and test results.",
     placement: "left",
   },
   {
     target: "[data-tour='send-btn']",
-    title: "Send Your First Request!",
+    titleKey: "tour.sendFirstRequest",
     description:
       "You're all set! Click Send or press Ctrl+Enter to fire off your request. Try the sample requests in the sidebar to get started.",
     placement: "bottom",
@@ -112,6 +113,7 @@ interface SpotlightRect {
 }
 
 export function GuidedTour({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ top: 0, left: 0 });
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
@@ -277,12 +279,12 @@ export function GuidedTour({ onComplete }: { onComplete: () => void }) {
 
         {/* Step counter */}
         <div className="mb-1 text-xs text-[var(--color-text-dimmed)]">
-          {step + 1} of {TOUR_STEPS.length}
+          {step + 1} {t("tour.of")} {TOUR_STEPS.length}
         </div>
 
         {/* Content */}
         <h3 className="mb-1 text-sm font-semibold text-[var(--color-text-primary)]">
-          {currentStep.title}
+          {t(currentStep.titleKey)}
         </h3>
         <p className="mb-4 text-xs leading-relaxed text-[var(--color-text-secondary)]">
           {currentStep.description}
@@ -294,7 +296,7 @@ export function GuidedTour({ onComplete }: { onComplete: () => void }) {
             onClick={onComplete}
             className="text-xs text-[var(--color-text-dimmed)] hover:text-[var(--color-text-secondary)]"
           >
-            Skip tour
+            {t("tour.skip")}
           </button>
           <div className="flex gap-2">
             {step > 0 && (
@@ -303,7 +305,7 @@ export function GuidedTour({ onComplete }: { onComplete: () => void }) {
                 className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
               >
                 <ChevronLeft className="h-3 w-3" />
-                Back
+                {t("tour.back")}
               </button>
             )}
             <button
@@ -315,11 +317,11 @@ export function GuidedTour({ onComplete }: { onComplete: () => void }) {
             >
               {step < TOUR_STEPS.length - 1 ? (
                 <>
-                  Next
+                  {t("tour.next")}
                   <ChevronRight className="h-3 w-3" />
                 </>
               ) : (
-                "Get Started"
+                t("common.getStarted")
               )}
             </button>
           </div>

@@ -25,6 +25,8 @@ export interface KeyValuePair {
   key: string;
   value: string;
   enabled: boolean;
+  /** For form-data: "file" means value is a file path whose content is embedded */
+  valueType?: "text" | "file";
 }
 
 // ── Request Body ──
@@ -178,6 +180,7 @@ export type CollectionNode =
       name: string;
       method: HttpMethod;
       path: string;
+      isGraphql?: boolean;
     };
 
 // ── Collection Defaults ──
@@ -579,6 +582,7 @@ export interface PersistedState {
   tabs: PersistedTab[];
   activeTabIndex: number | null;
   windowState?: WindowState;
+  collections?: string[];
 }
 
 // ── Tab ──
@@ -602,6 +606,7 @@ export interface Tab {
   url: string;
   headers: KeyValuePair[];
   params: KeyValuePair[];
+  pathVariables: Record<string, string>;
   body: RequestBody;
   auth: AuthConfig;
 
@@ -638,6 +643,7 @@ export interface TabSnapshot {
   url: string;
   headers: KeyValuePair[];
   params: KeyValuePair[];
+  pathVariables: Record<string, string>;
   body: RequestBody;
   auth: AuthConfig;
   preRequestScript: string | null;

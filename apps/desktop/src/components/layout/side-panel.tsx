@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useCollectionStore } from "@/stores/collection-store";
 import { CollectionTree } from "@/components/collection/collection-tree";
 import { EnvironmentSelector } from "@/components/environment/environment-selector";
@@ -28,13 +29,14 @@ export function SidePanel({
   onOpenDocs,
   onOpenImport,
 }: SidePanelProps) {
+  const { t } = useTranslation();
   const titles: Record<ActivityView, string> = {
-    collections: "Collections",
-    environments: "Environments",
-    history: "History",
-    mock: "Mock Servers",
-    monitor: "Monitors",
-    docs: "API Docs",
+    collections: t("sidebar.collections"),
+    environments: t("sidebar.environments"),
+    history: t("history.title"),
+    mock: t("mock.title"),
+    monitor: t("monitor.title"),
+    docs: t("docs.title"),
   };
 
   return (
@@ -51,15 +53,16 @@ export function SidePanel({
         {activeView === "collections" && <CollectionsPanel onOpenImport={onOpenImport} />}
         {activeView === "environments" && <EnvironmentsPanel envSelectorRef={envSelectorRef} />}
         {activeView === "history" && <HistoryPanel />}
-        {activeView === "mock" && <ToolPanel description="Create local mock servers from your collections" actionLabel="New Mock Server" onAction={onOpenMock} />}
-        {activeView === "monitor" && <ToolPanel description="Schedule automated collection runs" actionLabel="New Monitor" onAction={onOpenMonitor} />}
-        {activeView === "docs" && <ToolPanel description="Generate documentation from collections" actionLabel="Generate Docs" onAction={onOpenDocs} />}
+        {activeView === "mock" && <ToolPanel description={t("mock.createDesc")} actionLabel={t("mock.newMockServer")} onAction={onOpenMock} />}
+        {activeView === "monitor" && <ToolPanel description={t("monitor.createDesc")} actionLabel={t("monitor.newMonitor")} onAction={onOpenMonitor} />}
+        {activeView === "docs" && <ToolPanel description={t("docs.generateDesc")} actionLabel={t("docs.generateDocs")} onAction={onOpenDocs} />}
       </div>
     </div>
   );
 }
 
 function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
+  const { t } = useTranslation();
   const { collections, openCollection, closeCollection } = useCollectionStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [newCollectionOpen, setNewCollectionOpen] = useState(false);
@@ -88,7 +91,7 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search requests..."
+            placeholder={t("sidebar.search")}
             className="w-full rounded-lg bg-[var(--color-elevated)] py-1.5 pl-8 pr-7 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none transition-colors focus:bg-[var(--color-card)] focus:ring-1 focus:ring-[var(--color-accent)]/50"
           />
           {searchQuery && (
@@ -108,9 +111,9 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
             <FolderOpen className="h-6 w-6 text-[var(--color-accent)]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--color-text-secondary)]">No collections</p>
+            <p className="text-sm font-medium text-[var(--color-text-secondary)]">{t("sidebar.noCollections")}</p>
             <p className="mt-0.5 text-xs text-[var(--color-text-dimmed)]">
-              Create a new collection or open an existing folder
+              {t("sidebar.noCollectionsDesc")}
             </p>
           </div>
           <button
@@ -118,14 +121,14 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
             className="flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-xs font-medium text-white transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <FolderPlus className="h-3.5 w-3.5" />
-            New Collection
+            {t("sidebar.newCollection")}
           </button>
           <button
             onClick={handleOpenFolder}
             className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-xs font-medium text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-elevated)]"
           >
             <FolderOpen className="h-3.5 w-3.5" />
-            Open Folder
+            {t("sidebar.openFolder")}
           </button>
           {onOpenImport && (
             <button
@@ -133,7 +136,7 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
               className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-xs font-medium text-[var(--color-text-secondary)] transition-all hover:bg-[var(--color-elevated)]"
             >
               <Upload className="h-3.5 w-3.5" />
-              Import Collection
+              {t("sidebar.importCollection")}
             </button>
           )}
         </div>
@@ -166,7 +169,7 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]"
                 >
                   <FolderX className="h-3.5 w-3.5" />
-                  Close Collection
+                  {t("sidebar.closeCollection")}
                 </button>
                 <button
                   onClick={async () => {
@@ -185,25 +188,25 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-red-400 hover:bg-[var(--color-border)]"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Delete Collection
+                  {t("sidebar.deleteCollection")}
                 </button>
               </div>
             </>
           )}
-          <div className="mx-1 mt-2 flex gap-1.5">
+          <div className="mx-1 mt-2 flex flex-wrap gap-1.5">
             <button
               onClick={() => setNewCollectionOpen(true)}
               className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm text-[var(--color-text-dimmed)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
             >
               <FolderPlus className="h-4 w-4" />
-              New
+              {t("sidebar.new")}
             </button>
             <button
               onClick={handleOpenFolder}
               className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm text-[var(--color-text-dimmed)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
             >
               <FolderOpen className="h-4 w-4" />
-              Open
+              {t("sidebar.open")}
             </button>
             {onOpenImport && (
               <button
@@ -211,7 +214,7 @@ function CollectionsPanel({ onOpenImport }: { onOpenImport?: () => void }) {
                 className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm text-[var(--color-text-dimmed)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
               >
                 <Upload className="h-4 w-4" />
-                Import
+                {t("sidebar.import")}
               </button>
             )}
           </div>
@@ -283,6 +286,7 @@ function NewCollectionDialog({
   onOpenChange: (open: boolean) => void;
   onCreated: (path: string) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [parentDir, setParentDir] = useState("");
   const [creating, setCreating] = useState(false);
@@ -328,7 +332,7 @@ function NewCollectionDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
             <Dialog.Title className="text-sm font-medium text-[var(--color-text-primary)]">
-              New Collection
+              {t("sidebar.newCollection")}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)]">
               <X className="h-4 w-4" />
@@ -338,13 +342,13 @@ function NewCollectionDialog({
           <div className="space-y-4 p-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-                Collection Name
+                {t("sidebar.collectionName")}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="My API"
+                placeholder={t("sidebar.collectionNamePlaceholder")}
                 autoFocus
                 className="w-full rounded bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                 onKeyDown={(e) => {
@@ -355,21 +359,21 @@ function NewCollectionDialog({
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-                Location
+                {t("sidebar.location")}
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={parentDir}
                   readOnly
-                  placeholder="Choose a folder..."
+                  placeholder={t("common.browse")}
                   className="flex-1 truncate rounded bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none"
                 />
                 <button
                   onClick={handlePickFolder}
                   className="shrink-0 rounded bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
                 >
-                  Browse
+                  {t("common.browse")}
                 </button>
               </div>
               {name.trim() && parentDir && (
@@ -386,14 +390,14 @@ function NewCollectionDialog({
 
           <div className="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
             <Dialog.Close className="rounded px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]">
-              Cancel
+              {t("common.cancel")}
             </Dialog.Close>
             <button
               onClick={handleCreate}
               disabled={!canCreate}
               className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              {creating ? "Creating..." : "Create"}
+              {creating ? t("sidebar.creating") : t("common.create")}
             </button>
           </div>
         </Dialog.Content>
@@ -407,6 +411,7 @@ function EnvironmentsPanel({
 }: {
   envSelectorRef?: React.RefObject<HTMLSelectElement | null>;
 }) {
+  const { t } = useTranslation();
   const { environments, activeEnvironmentName, setActiveEnvironment, loadEnvironments } =
     useEnvironmentStore();
   const { collections } = useCollectionStore();
@@ -509,9 +514,9 @@ function EnvironmentsPanel({
           <Globe className="h-6 w-6 text-emerald-400" />
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--color-text-secondary)]">No collection open</p>
+          <p className="text-sm font-medium text-[var(--color-text-secondary)]">{t("sidebar.noCollections")}</p>
           <p className="mt-0.5 text-xs text-[var(--color-text-dimmed)]">
-            Open a collection first to manage environments
+            {t("sidebar.openCollectionFirst")}
           </p>
         </div>
         <button
@@ -519,7 +524,7 @@ function EnvironmentsPanel({
           className="flex items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-xs font-medium text-white transition-all hover:brightness-110 active:scale-[0.98]"
         >
           <FolderOpen className="h-3.5 w-3.5" />
-          Open Collection
+          {t("sidebar.openCollection")}
         </button>
       </div>
     );
@@ -545,20 +550,20 @@ function EnvironmentsPanel({
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-dimmed)]">
-            Environments
+            {t("sidebar.environments")}
           </span>
           <div className="flex items-center gap-0.5">
             <button
               onClick={handleImportEnv}
               className="rounded p-1 text-[var(--color-text-dimmed)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-              title="Import Environment (Postman JSON)"
+              title={t("sidebar.importEnvironment")}
             >
               <Upload className="h-4 w-4" />
             </button>
             <button
               onClick={() => setNewEnvOpen(true)}
               className="rounded p-1 text-[var(--color-text-dimmed)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-              title="New Environment"
+              title={t("sidebar.newEnvironment")}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -568,14 +573,14 @@ function EnvironmentsPanel({
         {environments.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-4">
             <p className="text-xs text-[var(--color-text-dimmed)]">
-              No environments yet
+              {t("sidebar.noEnvironmentsYet")}
             </p>
             <button
               onClick={() => setNewEnvOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-all hover:brightness-110 active:scale-[0.98]"
             >
               <Plus className="h-3.5 w-3.5" />
-              New Environment
+              {t("sidebar.newEnvironment")}
             </button>
           </div>
         ) : (
@@ -617,6 +622,7 @@ function EnvironmentEditor({
   onSave: (env: EnvironmentData) => void;
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(env.name);
   const [variables, setVariables] = useState<{ key: string; value: string }[]>(
     () => {
@@ -663,13 +669,13 @@ function EnvironmentEditor({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="flex-1 truncate rounded bg-transparent px-1 text-sm font-medium text-[var(--color-text-primary)] outline-none focus:bg-[var(--color-elevated)] focus:ring-1 focus:ring-[var(--color-accent)]"
+          className="min-w-0 flex-1 truncate rounded bg-transparent px-1 text-sm font-medium text-[var(--color-text-primary)] outline-none focus:bg-[var(--color-elevated)] focus:ring-1 focus:ring-[var(--color-accent)]"
         />
         <button
           onClick={handleSave}
           className="shrink-0 rounded bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white hover:bg-[var(--color-accent-hover)]"
         >
-          Save
+          {t("common.save")}
         </button>
       </div>
 
@@ -677,7 +683,7 @@ function EnvironmentEditor({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-dimmed)]">
-            Variables
+            {t("environment.variables")}
           </span>
         </div>
 
@@ -687,14 +693,14 @@ function EnvironmentEditor({
               type="text"
               value={v.key}
               onChange={(e) => updateVar(i, "key", e.target.value)}
-              placeholder="Key"
+              placeholder={t("request.key")}
               className="w-1/2 rounded bg-[var(--color-elevated)] px-2 py-1 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
             />
             <input
               type="text"
               value={v.value}
               onChange={(e) => updateVar(i, "value", e.target.value)}
-              placeholder="Value"
+              placeholder={t("request.value")}
               className="flex-1 rounded bg-[var(--color-elevated)] px-2 py-1 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
             />
             <button
@@ -710,7 +716,7 @@ function EnvironmentEditor({
           onClick={addVar}
           className="flex items-center gap-1 text-xs text-[var(--color-text-dimmed)] hover:text-[var(--color-text-secondary)]"
         >
-          <Plus className="h-3 w-3" /> Add Variable
+          <Plus className="h-3 w-3" /> {t("sidebar.addVariable")}
         </button>
       </div>
     </div>
@@ -726,6 +732,7 @@ function NewEnvironmentDialog({
   onOpenChange: (open: boolean) => void;
   onCreate: (name: string) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
 
   const handleOpenChange = (v: boolean) => {
@@ -740,7 +747,7 @@ function NewEnvironmentDialog({
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
             <Dialog.Title className="text-sm font-medium text-[var(--color-text-primary)]">
-              New Environment
+              {t("sidebar.newEnvironment")}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)]">
               <X className="h-4 w-4" />
@@ -761,14 +768,14 @@ function NewEnvironmentDialog({
           </div>
           <div className="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
             <Dialog.Close className="rounded px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]">
-              Cancel
+              {t("common.cancel")}
             </Dialog.Close>
             <button
               onClick={() => name.trim() && onCreate(name.trim())}
               disabled={!name.trim()}
               className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              Create
+              {t("common.create")}
             </button>
           </div>
         </Dialog.Content>

@@ -311,7 +311,18 @@ fn apply_body(
                 .iter()
                 .filter(|kv| kv.enabled && !kv.key.is_empty())
             {
-                form = form.text(kv.key.clone(), kv.value.clone());
+                if kv.value_type.as_deref() == Some("file") {
+                    // Embed file content as a text field (no filename in Content-Disposition)
+                    let content = std::fs::read_to_string(&kv.value).map_err(|e| {
+                        HttpEngineError::RequestError(format!(
+                            "Failed to read file '{}': {e}",
+                            kv.value
+                        ))
+                    })?;
+                    form = form.text(kv.key.clone(), content);
+                } else {
+                    form = form.text(kv.key.clone(), kv.value.clone());
+                }
             }
             Ok(builder.multipart(form))
         }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Play, X, Download } from "lucide-react";
 import { useCollectionStore } from "@/stores/collection-store";
@@ -21,6 +22,7 @@ export function CollectionRunnerDialog({
   initialCollectionPath,
   initialFolderPath,
 }: CollectionRunnerDialogProps) {
+  const { t } = useTranslation();
   const { collections } = useCollectionStore();
   const { environments, activeEnvironmentName } = useEnvironmentStore();
   const { isRunning, progress, summary, error, startRun, reset } = useRunnerStore();
@@ -98,7 +100,7 @@ export function CollectionRunnerDialog({
                     onChange={(e) => setEnvironmentName(e.target.value)}
                     className="w-full rounded bg-[var(--color-elevated)] px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] outline-none"
                   >
-                    <option value="">None</option>
+                    <option value="">{t("body.none")}</option>
                     {environments.map((e) => (
                       <option key={e.name} value={e.name}>{e.name}</option>
                     ))}

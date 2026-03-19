@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useActiveTab, useTabStore } from "@/stores/tab-store";
 import { AlertCircle, ClipboardCopy, Download, Check, ArrowLeftRight, BookmarkPlus } from "lucide-react";
 import { useDiffStore } from "@/stores/diff-store";
@@ -31,6 +32,7 @@ function formatSize(bytes: number): string {
 }
 
 export function ResponsePanel() {
+  const { t } = useTranslation();
   const tab = useActiveTab();
   const [activeTab, setActiveTab] = useState<ResponseTab>("body");
 
@@ -105,7 +107,7 @@ export function ResponsePanel() {
       {!response && activeTab !== "code" && activeTab !== "tests" && activeTab !== "console" && (
         <EmptyState
           icon={<RocketIcon />}
-          title="Send a request to see the response"
+          title={t("response.noResponse")}
           description="Use Ctrl+Enter to send quickly"
         />
       )}
@@ -208,6 +210,7 @@ export function ResponsePanel() {
 }
 
 function ResponseBodyActions({ body }: { body: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const tab = useActiveTab();
   const { saveSnapshot, open: openDiff } = useDiffStore();
@@ -249,18 +252,18 @@ function ResponseBodyActions({ body }: { body: string }) {
       <button
         onClick={handleCopy}
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-        title="Copy to clipboard"
+        title={t("response.copy")}
       >
         {copied ? <Check className="h-3 w-3 text-green-500" /> : <ClipboardCopy className="h-3 w-3" />}
-        {copied ? "Copied" : "Copy"}
+        {copied ? t("response.copied") : t("response.copy")}
       </button>
       <button
         onClick={handleSave}
         className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-        title="Save to file"
+        title={t("response.saveToFile")}
       >
         <Download className="h-3 w-3" />
-        Save
+        {t("common.save")}
       </button>
       {tab?.response && (
         <>
@@ -271,18 +274,18 @@ function ResponseBodyActions({ body }: { body: string }) {
               }
             }}
             className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-            title="Save response for diff comparison"
+            title={t("response.saveForDiff")}
           >
             <BookmarkPlus className="h-3 w-3" />
-            Save for Diff
+            {t("response.saveForDiff")}
           </button>
           <button
             onClick={openDiff}
             className="flex items-center gap-1 rounded px-2 py-1 text-xs text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-            title="Compare responses"
+            title={t("response.compare")}
           >
             <ArrowLeftRight className="h-3 w-3" />
-            Compare
+            {t("response.compare")}
           </button>
         </>
       )}
@@ -305,45 +308,48 @@ function ResponseTabs({
   failedCount: number;
   consoleCount: number;
 }) {
-  const tabs: { id: ResponseTab; label: string }[] = [
-    { id: "body", label: "Body" },
-    { id: "headers", label: "Headers" },
-    { id: "cookies", label: "Cookies" },
-    { id: "tests", label: "Tests" },
-    { id: "timing", label: "Timing" },
-    { id: "console", label: "Console" },
-    { id: "code", label: "Code" },
-  ];
+  const { t } = useTranslation();
+
+  const TAB_IDS: ResponseTab[] = ["body", "headers", "cookies", "tests", "timing", "console", "code"];
+  const TAB_LABEL_KEYS: Record<ResponseTab, string> = {
+    body: "response.body",
+    headers: "response.headers",
+    cookies: "response.cookies",
+    tests: "response.tests",
+    timing: "response.timing",
+    console: "response.console",
+    code: "response.code",
+  };
 
   return (
     <div className="flex gap-0 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-      {tabs.map((t) => (
+      {TAB_IDS.map((tabId) => (
         <button
-          key={t.id}
-          onClick={() => setActiveTab(t.id)}
+          key={tabId}
+          onClick={() => setActiveTab(tabId)}
           className={`shrink-0 whitespace-nowrap px-4 py-2 text-sm transition-colors ${
-            activeTab === t.id
+            activeTab === tabId
               ? "border-b-2 border-blue-500 text-[var(--color-text-primary)]"
               : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
           }`}
         >
-          {t.label}
-          {t.id === "headers" && response && (
+          {t(TAB_LABEL_KEYS[tabId])}
+          {tabId === "headers" && response && (
             <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
               ({response.headers.length})
             </span>
           )}
-          {t.id === "cookies" && response && response.cookies.length > 0 && (
+          {tabId === "cookies" && response && response.cookies.length > 0 && (
             <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
               ({response.cookies.length})
             </span>
           )}
-          {t.id === "tests" && hasTestResults && (
+          {tabId === "tests" && hasTestResults && (
             <span className={`ml-1 text-xs ${failedCount > 0 ? "text-red-400" : "text-green-500"}`}>
               {failedCount > 0 ? `${failedCount} fail` : "pass"}
             </span>
           )}
-          {t.id === "console" && consoleCount > 0 && (
+          {tabId === "console" && consoleCount > 0 && (
             <span className="ml-1 text-xs text-[var(--color-text-dimmed)]">
               ({consoleCount})
             </span>

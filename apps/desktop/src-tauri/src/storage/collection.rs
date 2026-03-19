@@ -80,10 +80,12 @@ fn scan_directory(dir: &Path) -> Result<Vec<CollectionNode>, String> {
                         .file_stem()
                         .map(|s| s.to_string_lossy().to_string())
                         .unwrap_or_default();
+                    let is_gql = meta.is_graphql();
                     requests.push((
                         order_map.get(&stem).copied().unwrap_or(usize::MAX),
                         CollectionNode::Request {
                             name: meta.name,
+                            is_graphql: is_gql,
                             method: meta.method,
                             path: path.to_string_lossy().to_string(),
                         },
@@ -231,15 +233,32 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
 pub fn rename_item(path: &Path, new_name: &str) -> Result<PathBuf, String> {
     let parent = path.parent().ok_or("Cannot get parent directory")?;
 
+    // Sanitize the name for use as a filename:
+    // replace characters illegal on Windows and problematic on other OSes
+    let safe_name: String = new_name
+        .chars()
+        .map(|c| match c {
+            '<' | '>' | ':' | '"' | '/' | '\\' | '|' | '?' | '*' => '-',
+            c if c.is_control() => '-',
+            c => c,
+        })
+        .collect::<String>()
+        .trim()
+        .to_string();
+
+    if safe_name.is_empty() {
+        return Err("Name cannot be empty".to_string());
+    }
+
     let new_path = if path.is_dir() {
-        parent.join(new_name)
+        parent.join(&safe_name)
     } else {
         // Preserve .yaml extension for request files
         let ext = path.extension().map(|e| e.to_string_lossy().to_string());
         if let Some(ext) = ext {
-            parent.join(format!("{new_name}.{ext}"))
+            parent.join(format!("{safe_name}.{ext}"))
         } else {
-            parent.join(new_name)
+            parent.join(&safe_name)
         }
     };
 

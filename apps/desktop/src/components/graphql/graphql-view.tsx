@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { KeyValueEditor } from "@/components/request/key-value-editor";
 import { ResponsePanel } from "@/components/response/response-panel";
@@ -26,6 +27,7 @@ const INTROSPECTION_QUERY = `query IntrospectionQuery {
 }`;
 
 export function GraphQLView() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<GqlTab>("query");
   const [schemaTypes, setSchemaTypes] = useState<{ name: string; kind: string }[]>([]);
   const [fetchingSchema, setFetchingSchema] = useState(false);
@@ -76,8 +78,8 @@ export function GraphQLView() {
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* URL Bar */}
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
-        <span className="rounded bg-yellow-500/20 px-2 py-0.5 text-xs font-bold text-yellow-500">
-          POST
+        <span className="rounded bg-violet-500/20 px-2 py-0.5 text-xs font-bold text-violet-400">
+          GQL
         </span>
         <input
           type="text"
@@ -95,10 +97,10 @@ export function GraphQLView() {
           onClick={handleFetchSchema}
           disabled={fetchingSchema || !tab.url.trim()}
           className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-2.5 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] disabled:opacity-50"
-          title="Fetch Schema (Introspection)"
+          title={t("graphql.fetchSchema")}
         >
           <Download className="h-3 w-3" />
-          {fetchingSchema ? "Fetching..." : "Schema"}
+          {fetchingSchema ? t("graphql.fetchingSchema") : t("graphql.schema")}
         </button>
         <button
           onClick={send}
@@ -106,7 +108,7 @@ export function GraphQLView() {
           className="flex items-center gap-1.5 rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           <Send className="h-3.5 w-3.5" />
-          {tab.loading ? "Sending..." : "Send"}
+          {tab.loading ? t("request.sending") : t("request.send")}
         </button>
       </div>
 
@@ -137,13 +139,13 @@ export function GraphQLView() {
               <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <div className="flex shrink-0 items-center justify-between">
                   <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-                    GraphQL Query
+                    {t("graphql.query")}
                   </label>
                   <input
                     type="text"
                     value={tab.graphql.operationName}
                     onChange={(e) => setGraphQLOperationName(e.target.value)}
-                    placeholder="Operation Name (optional)"
+                    placeholder={t("graphql.operationName")}
                     className="rounded bg-[var(--color-elevated)] px-2 py-1 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none"
                   />
                 </div>
@@ -162,7 +164,7 @@ export function GraphQLView() {
             {activeTab === "variables" && (
               <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <label className="shrink-0 text-xs font-medium text-[var(--color-text-secondary)]">
-                  Variables (JSON)
+                  {t("graphql.variablesJson")}
                 </label>
                 <div className="min-h-0 flex-1">
                   <CodeEditor
@@ -181,8 +183,8 @@ export function GraphQLView() {
                 <KeyValueEditor
                   pairs={tab.headers}
                   onChange={setHeaders}
-                  keyPlaceholder="Header"
-                  valuePlaceholder="Value"
+                  keyPlaceholder={t("request.header")}
+                  valuePlaceholder={t("request.value")}
                 />
               </div>
             )}
@@ -236,6 +238,7 @@ function AuthEditorCompact({
   auth: AuthConfig;
   onChange: (auth: AuthConfig) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <select
@@ -251,10 +254,10 @@ function AuthEditorCompact({
         }}
         className="rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-purple-500"
       >
-        <option value="none">No Auth</option>
-        <option value="bearer">Bearer Token</option>
-        <option value="basic">Basic Auth</option>
-        <option value="api-key">API Key</option>
+        <option value="none">{t("auth.none")}</option>
+        <option value="bearer">{t("auth.bearer")}</option>
+        <option value="basic">{t("auth.basic")}</option>
+        <option value="api-key">{t("auth.apiKey")}</option>
       </select>
 
       {auth.type === "bearer" && (
@@ -262,15 +265,15 @@ function AuthEditorCompact({
           type="text"
           value={auth.token}
           onChange={(e) => onChange({ ...auth, token: e.target.value })}
-          placeholder="Token"
+          placeholder={t("auth.token")}
           className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-purple-500"
         />
       )}
 
       {auth.type === "basic" && (
         <div className="space-y-2">
-          <input type="text" value={auth.username} onChange={(e) => onChange({ ...auth, username: e.target.value })} placeholder="Username" className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none" />
-          <input type="password" value={auth.password} onChange={(e) => onChange({ ...auth, password: e.target.value })} placeholder="Password" className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none" />
+          <input type="text" value={auth.username} onChange={(e) => onChange({ ...auth, username: e.target.value })} placeholder={t("auth.username")} className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none" />
+          <input type="password" value={auth.password} onChange={(e) => onChange({ ...auth, password: e.target.value })} placeholder={t("auth.password")} className="w-full rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none" />
         </div>
       )}
     </div>

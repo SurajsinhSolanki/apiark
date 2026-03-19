@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Upload, FileJson, FolderOpen, AlertTriangle, Check, Loader2, X } from "lucide-react";
 import type { ImportFormat, ImportPreview } from "@apiark/types";
@@ -26,6 +27,7 @@ const FORMAT_LABELS: Record<ImportFormat, string> = {
 };
 
 export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>("select");
   const [filePath, setFilePath] = useState("");
   const [format, setFormat] = useState<ImportFormat | null>(null);
@@ -178,7 +180,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
             <Dialog.Title className="flex items-center gap-2 text-sm font-medium text-[var(--color-text-primary)]">
               <Upload className="h-4 w-4" />
-              Import Collection
+              {t("import.title")}
             </Dialog.Title>
             <Dialog.Close className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
               <X className="h-4 w-4" />
@@ -241,11 +243,13 @@ function SelectStep({
   onFormatChange: (f: ImportFormat) => void;
   onNext: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-          Source
+          {t("import.source")}
         </label>
         <div className="flex gap-2">
           <button
@@ -253,14 +257,14 @@ function SelectStep({
             className="flex flex-1 items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:border-blue-500 hover:text-[var(--color-text-primary)]"
           >
             <FileJson className="h-4 w-4" />
-            Select File
+            {t("import.selectFile")}
           </button>
           <button
             onClick={onSelectDirectory}
             className="flex flex-1 items-center gap-2 rounded border border-[var(--color-border)] bg-[var(--color-elevated)] px-3 py-2 text-sm text-[var(--color-text-secondary)] hover:border-blue-500 hover:text-[var(--color-text-primary)]"
           >
             <FolderOpen className="h-4 w-4" />
-            Select Folder (Bruno)
+            {t("import.selectFolder")}
           </button>
         </div>
         {filePath && (
@@ -270,7 +274,7 @@ function SelectStep({
 
       <div className="space-y-2">
         <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-          Format {format && <span className="text-green-500">(auto-detected)</span>}
+          {t("import.format")} {format && <span className="text-green-500">{t("import.autoDetect")}</span>}
         </label>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(FORMAT_LABELS) as ImportFormat[]).map((f) => (
@@ -302,7 +306,7 @@ function SelectStep({
           disabled={!filePath || !format}
           className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Next
+          {t("import.next")}
         </button>
       </div>
     </div>
@@ -324,6 +328,8 @@ function PreviewStep({
   onBack: () => void;
   onImport: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <div>
@@ -353,13 +359,13 @@ function PreviewStep({
 
       <div className="space-y-2">
         <label className="text-xs font-medium text-[var(--color-text-secondary)]">
-          Save to
+          {t("import.saveTo")}
         </label>
         <button
           onClick={onSelectTargetDir}
           className="w-full truncate rounded border border-[var(--color-border)] bg-[var(--color-elevated)] px-3 py-2 text-left text-sm text-[var(--color-text-secondary)] hover:border-blue-500"
         >
-          {targetDir || "Select directory..."}
+          {targetDir || t("import.selectDirectory")}
         </button>
       </div>
 
@@ -375,14 +381,14 @@ function PreviewStep({
           onClick={onBack}
           className="rounded border border-[var(--color-border)] px-4 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]"
         >
-          Back
+          {t("import.back")}
         </button>
         <button
           onClick={onImport}
           disabled={!targetDir}
           className="rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Import
+          {t("sidebar.import")}
         </button>
       </div>
     </div>
@@ -400,25 +406,27 @@ function ImportingStep({
   error: string | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4 text-center">
       {importing && (
         <div className="flex flex-col items-center gap-3 py-6">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-sm text-[var(--color-text-secondary)]">Importing collection...</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">{t("import.importing")}</p>
         </div>
       )}
 
       {!importing && result && (
         <div className="flex flex-col items-center gap-3 py-6">
           <Check className="h-8 w-8 text-green-500" />
-          <p className="text-sm text-[var(--color-text-primary)]">Collection imported successfully!</p>
+          <p className="text-sm text-[var(--color-text-primary)]">{t("import.success")}</p>
           <p className="truncate text-xs text-[var(--color-text-dimmed)]">{result}</p>
           <button
             onClick={onClose}
             className="mt-2 rounded bg-blue-600 px-4 py-1.5 text-sm text-white hover:bg-blue-500"
           >
-            Done
+            {t("import.done")}
           </button>
         </div>
       )}
@@ -431,7 +439,7 @@ function ImportingStep({
             onClick={onClose}
             className="mt-2 rounded border border-[var(--color-border)] px-4 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
       )}

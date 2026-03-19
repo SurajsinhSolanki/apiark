@@ -190,7 +190,7 @@ fn parse_url(url_val: Option<&Value>) -> (String, HashMap<String, String>) {
                 .unwrap_or_default();
 
             // Postman URL object: { raw, host, path, query, ... }
-            let mut url = if let Some(raw) = v.get("raw").and_then(|r| r.as_str()) {
+            let url = if let Some(raw) = v.get("raw").and_then(|r| r.as_str()) {
                 raw.to_string()
             } else {
                 // Reconstruct from parts
@@ -226,17 +226,9 @@ fn parse_url(url_val: Option<&Value>) -> (String, HashMap<String, String>) {
                 format!("{protocol}://{host}/{path}")
             };
 
-            // Replace :paramName placeholders in the URL with path variable values.
-            // Path variables are NOT query params — they belong in the URL path itself.
-            for (key, value) in &path_variables {
-                if !value.is_empty() {
-                    url = url.replace(&format!(":{key}"), value);
-                }
-            }
-
-            // Path variables have been substituted into the URL, so return empty map
-            // (they should not be added as query params)
-            (url, empty_vars)
+            // Keep :paramName placeholders in the URL — path variable values are
+            // stored separately in the params field so the UI can display and edit them.
+            (url, path_variables)
         }
     }
 }
@@ -418,7 +410,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_path_variable_substitution() {
+    fn test_path_variable_preserved() {
         let result = parse_postman(r#"{
             "info": { "name": "Test", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
             "item": [{
@@ -437,8 +429,14 @@ mod tests {
 
         match &result.items[0] {
             ImportItem::Request { url, params, .. } => {
-                assert_eq!(url, "{{hostUrl}}/order/name/Mujo Hasic");
-                assert!(params.is_none(), "path vars should not become query params");
+                assert_eq!(
+                    url, "{{hostUrl}}/order/name/:name",
+                    "URL should keep :placeholder"
+                );
+                let p = params
+                    .as_ref()
+                    .expect("params should contain path variables");
+                assert_eq!(p.get("name").unwrap(), "Mujo Hasic");
             }
             _ => panic!("expected request"),
         }
@@ -470,8 +468,15 @@ mod tests {
 
         match &result.items[0] {
             ImportItem::Request { url, params, .. } => {
-                assert_eq!(url, "{{hostUrl}}/users/123/posts/456");
-                assert!(params.is_none());
+                assert_eq!(
+                    url, "{{hostUrl}}/users/:userId/posts/:postId",
+                    "URL should keep :placeholders"
+                );
+                let p = params
+                    .as_ref()
+                    .expect("params should contain path variables");
+                assert_eq!(p.get("userId").unwrap(), "123");
+                assert_eq!(p.get("postId").unwrap(), "456");
             }
             _ => panic!("expected request"),
         }
@@ -504,7 +509,11 @@ mod tests {
                     url, "{{hostUrl}}/items/:id",
                     "empty value should keep :placeholder"
                 );
-                assert!(params.is_none());
+                // Empty path variable value is still stored
+                let p = params
+                    .as_ref()
+                    .expect("params should contain path variables");
+                assert_eq!(p.get("id").unwrap(), "");
             }
             _ => panic!("expected request"),
         }
