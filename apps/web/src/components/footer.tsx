@@ -60,7 +60,7 @@ export default function Footer() {
             <div className="col-span-2">
               <a href="/" className="inline-flex items-center gap-2.5">
                 <img
-                  src="/logo.svg"
+                  src="/logo.png"
                   alt="ApiArk"
                   width={24}
                   height={24}
