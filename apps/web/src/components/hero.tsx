@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Download, Github } from "lucide-react";
 import { AppMockup } from "./app-mockup";
@@ -14,14 +15,26 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
 };
 
-const badges = [
-  { label: "v0.2.28", color: "text-indigo-400 border-indigo-500/20 bg-indigo-500/[0.06]" },
-  { label: "Open Source", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/[0.06]" },
-  { label: "MIT License", color: "text-amber-400 border-amber-500/20 bg-amber-500/[0.06]" },
-  { label: "Cross-Platform", color: "text-violet-400 border-violet-500/20 bg-violet-500/[0.06]" },
-];
+function useLatestVersion() {
+  const [version, setVersion] = useState("v0.3.0");
+  useEffect(() => {
+    fetch("https://api.github.com/repos/berbicanes/apiark/releases/latest")
+      .then((r) => r.json())
+      .then((data) => { if (data.tag_name) setVersion(data.tag_name); })
+      .catch(() => {});
+  }, []);
+  return version;
+}
 
 export default function Hero() {
+  const latestVersion = useLatestVersion();
+
+  const badges = [
+    { label: latestVersion, color: "text-indigo-400 border-indigo-500/20 bg-indigo-500/[0.06]" },
+    { label: "Open Source", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/[0.06]" },
+    { label: "MIT License", color: "text-amber-400 border-amber-500/20 bg-amber-500/[0.06]" },
+    { label: "Cross-Platform", color: "text-violet-400 border-violet-500/20 bg-violet-500/[0.06]" },
+  ];
   return (
     <section className="relative pt-28 pb-20 overflow-hidden">
       <motion.div
