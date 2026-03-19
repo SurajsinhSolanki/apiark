@@ -1,6 +1,8 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, FolderOpen, Download, Upload, RefreshCw, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LANGUAGES } from "@/lib/i18n";
 import { useSettingsStore } from "@/stores/settings-store";
 import {
   useShortcutsStore,
@@ -20,6 +22,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { settings, updateSettings } = useSettingsStore();
+  const { t, i18n } = useTranslation();
 
   const update = (patch: Partial<AppSettings>) => {
     updateSettings(patch);
@@ -33,7 +36,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
             <Dialog.Title className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Settings
+              {t("settings.title")}
             </Dialog.Title>
             <Dialog.Close className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-primary)]">
               <X className="h-4 w-4" />
@@ -44,26 +47,26 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             {/* Appearance Section */}
             <section>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Appearance
+                {t("settings.appearance")}
               </h3>
 
               {/* Theme */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Theme
+                  {t("settings.theme")}
                 </label>
                 <div className="flex gap-2">
-                  {(["system", "light", "dark", "black"] as const).map((t) => (
+                  {(["system", "light", "dark", "black"] as const).map((themeOption) => (
                     <button
-                      key={t}
-                      onClick={() => update({ theme: t })}
+                      key={themeOption}
+                      onClick={() => update({ theme: themeOption })}
                       className={`rounded px-4 py-2 text-sm capitalize transition-colors ${
-                        settings.theme === t
+                        settings.theme === themeOption
                           ? "bg-[var(--color-accent)] text-white"
                           : "bg-[var(--color-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                       }`}
                     >
-                      {t === "black" ? "Black (OLED)" : t}
+                      {themeOption === "black" ? t("settings.black") : themeOption}
                     </button>
                   ))}
                 </div>
@@ -72,7 +75,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Accent Color */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Accent Color
+                  {t("settings.accentColor")}
                 </label>
                 <div className="flex gap-2">
                   {([
@@ -107,13 +110,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Layout */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Panel Layout
+                  {t("settings.panelLayout")}
                 </label>
                 <div className="flex gap-2">
                   {([
-                    { value: "horizontal" as const, label: "Side by Side" },
-                    { value: "vertical" as const, label: "Stacked" },
-                    { value: "tabbed" as const, label: "Tabbed" },
+                    { value: "horizontal" as const, label: t("settings.sideBySide") },
+                    { value: "vertical" as const, label: t("settings.stacked") },
+                    { value: "tabbed" as const, label: t("settings.tabbed") },
                   ]).map((l) => (
                     <button
                       key={l.value}
@@ -131,9 +134,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
 
               {/* Sidebar width */}
-              <div>
+              <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Sidebar Width: {settings.sidebarWidth}px
+                  {t("settings.sidebarWidth")}: {settings.sidebarWidth}px
                 </label>
                 <input
                   type="range"
@@ -145,18 +148,43 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   className="w-full accent-[var(--color-accent)]"
                 />
               </div>
+
+              {/* Language */}
+              <div>
+                <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
+                  {t("settings.language")}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        i18n.changeLanguage(lang.code);
+                        localStorage.setItem("apiark-language", lang.code);
+                      }}
+                      className={`rounded px-3 py-1.5 text-sm transition-colors ${
+                        i18n.language === lang.code
+                          ? "bg-[var(--color-accent)] text-white"
+                          : "bg-[var(--color-elevated)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
 
             {/* Network Section */}
             <section>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Network
+                {t("settings.network")}
               </h3>
 
               {/* SSL Verification */}
               <div className="mb-3 flex items-center justify-between">
                 <label className="text-sm text-[var(--color-text-secondary)]">
-                  SSL Certificate Verification
+                  {t("settings.sslVerification")}
                 </label>
                 <ToggleSwitch
                   checked={settings.verifySsl}
@@ -167,7 +195,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Follow Redirects */}
               <div className="mb-3 flex items-center justify-between">
                 <label className="text-sm text-[var(--color-text-secondary)]">
-                  Follow Redirects
+                  {t("settings.followRedirects")}
                 </label>
                 <ToggleSwitch
                   checked={settings.followRedirects}
@@ -178,7 +206,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Timeout */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Request Timeout (ms)
+                  {t("settings.timeout")}
                 </label>
                 <input
                   type="number"
@@ -193,7 +221,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Proxy */}
               <div>
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Proxy URL
+                  {t("settings.proxyUrl")}
                 </label>
                 <input
                   type="text"
@@ -208,14 +236,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       type="text"
                       value={settings.proxyUsername ?? ""}
                       onChange={(e) => update({ proxyUsername: e.target.value || null })}
-                      placeholder="Username (optional)"
+                      placeholder={t("settings.proxyUsername")}
                       className="flex-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                     <input
                       type="password"
                       value={settings.proxyPassword ?? ""}
                       onChange={(e) => update({ proxyPassword: e.target.value || null })}
-                      placeholder="Password (optional)"
+                      placeholder={t("settings.proxyPassword")}
                       className="flex-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
                     />
                   </div>
@@ -226,13 +254,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             {/* Certificates Section */}
             <section>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Certificates
+                {t("settings.certificates")}
               </h3>
 
               {/* Custom CA Certificate */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Custom CA Certificate (PEM)
+                  {t("settings.caCert")}
                 </label>
                 <FilePathInput
                   value={settings.caCertPath ?? ""}
@@ -245,7 +273,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Client Certificate */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Client Certificate (PEM)
+                  {t("settings.clientCert")}
                 </label>
                 <FilePathInput
                   value={settings.clientCertPath ?? ""}
@@ -258,7 +286,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {/* Client Key */}
               <div className="mb-4">
                 <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                  Client Key (PEM)
+                  {t("settings.clientKey")}
                 </label>
                 <FilePathInput
                   value={settings.clientKeyPath ?? ""}
@@ -272,7 +300,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {settings.clientCertPath?.match(/\.(pfx|p12)$/i) && (
                 <div className="mb-4">
                   <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-                    PFX Passphrase
+                    {t("settings.pfxPassphrase")}
                   </label>
                   <input
                     type="password"
@@ -358,6 +386,7 @@ function UpdateSection({
   settings: AppSettings;
   update: (patch: Partial<AppSettings>) => void;
 }) {
+  const { t } = useTranslation();
   const [checking, setChecking] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string | null>(null);
@@ -434,7 +463,7 @@ function UpdateSection({
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-        Updates
+        {t("settings.updates")}
       </h3>
 
       {isSystemPackage && (
@@ -456,7 +485,7 @@ function UpdateSection({
 
       <div className="mb-4">
         <label className="mb-2 block text-sm text-[var(--color-text-secondary)]">
-          Update Channel
+          {t("settings.updateChannel")}
         </label>
         <div className="flex gap-2">
           {(["stable", "beta", "nightly"] as const).map((channel) => (
@@ -482,7 +511,7 @@ function UpdateSection({
           className="flex items-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)] disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${checking ? "animate-spin" : ""}`} />
-          {checking ? "Checking..." : "Check for Updates"}
+          {checking ? "Checking..." : t("settings.checkForUpdates")}
         </button>
 
         {pendingUpdate && !installing && !isSystemPackage && (
@@ -531,6 +560,7 @@ function UpdateSection({
 }
 
 function BackupSection() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<string | null>(null);
   const [includeHistory, setIncludeHistory] = useState(true);
 
@@ -542,7 +572,7 @@ function BackupSection() {
     if (!path) return;
 
     try {
-      setStatus("Exporting...");
+      setStatus(t("settings.exporting"));
       const result = await exportAppState(path, includeHistory);
       setStatus(`Exported ${result.filesIncluded.length} files to ${result.path}`);
     } catch (e) {
@@ -560,7 +590,7 @@ function BackupSection() {
     if (!confirm("This will merge settings and replace history. Continue?")) return;
 
     try {
-      setStatus("Importing...");
+      setStatus(t("settings.importing"));
       const result = await importAppState(path);
       const parts = [...result.filesRestored];
       if (result.historyEntries) parts.push(`history (${result.historyEntries})`);
@@ -573,12 +603,12 @@ function BackupSection() {
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-        Backup
+        {t("settings.backup")}
       </h3>
 
       <div className="mb-3 flex items-center justify-between">
         <label className="text-sm text-[var(--color-text-secondary)]">
-          Include history in export
+          {t("settings.includeHistory")}
         </label>
         <button
           role="switch"
@@ -602,14 +632,14 @@ function BackupSection() {
           className="flex items-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
         >
           <Download className="h-3.5 w-3.5" />
-          Export App State
+          {t("settings.exportState")}
         </button>
         <button
           onClick={handleImport}
           className="flex items-center gap-1.5 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
         >
           <Upload className="h-3.5 w-3.5" />
-          Import App State
+          {t("settings.importState")}
         </button>
       </div>
 
@@ -726,6 +756,7 @@ function DesignTokensSection() {
 }
 
 function KeyboardShortcutsSection() {
+  const { t } = useTranslation();
   const { getBinding, setBinding, resetAll, findConflicts } = useShortcutsStore();
   const [recordingId, setRecordingId] = useState<string | null>(null);
   const conflicts = findConflicts();
@@ -738,7 +769,7 @@ function KeyboardShortcutsSection() {
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-        Keyboard Shortcuts
+        {t("settings.shortcuts")}
       </h3>
 
       {conflicts.length > 0 && (

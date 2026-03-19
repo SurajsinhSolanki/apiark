@@ -1,8 +1,10 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useConsoleStore, type ConsoleLogEntry } from "@/stores/console-store";
 import { Terminal, Trash2, ChevronDown, Filter } from "lucide-react";
 
 export function ConsoleBottomBar() {
+  const { t } = useTranslation();
   const { entries, open, height, filter, toggle, clear, setHeight, setFilter } =
     useConsoleStore();
   const listRef = useRef<HTMLDivElement>(null);
@@ -59,7 +61,7 @@ export function ConsoleBottomBar() {
       <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-3 py-1.5">
         <Terminal className="h-3.5 w-3.5 text-[var(--color-accent)]" />
         <span className="text-xs font-semibold text-[var(--color-text-secondary)]">
-          Console
+          {t("console.title")}
         </span>
         <span className="rounded-full bg-[var(--color-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--color-text-dimmed)]">
           {filtered.length}
@@ -88,14 +90,14 @@ export function ConsoleBottomBar() {
         <button
           onClick={clear}
           className="rounded-md p-1 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-          title="Clear console"
+          title={t("console.clear")}
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={toggle}
           className="rounded-md p-1 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-          title="Close console"
+          title={t("console.closePanel")}
         >
           <ChevronDown className="h-3.5 w-3.5" />
         </button>
@@ -105,7 +107,7 @@ export function ConsoleBottomBar() {
       <div ref={listRef} className="flex-1 overflow-auto font-mono text-xs">
         {filtered.length === 0 ? (
           <div className="flex h-full items-center justify-center text-[var(--color-text-dimmed)]">
-            No console output
+            {t("console.noLogs")}
           </div>
         ) : (
           filtered.map((entry) => <ConsoleRow key={entry.id} entry={entry} />)

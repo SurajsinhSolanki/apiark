@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useMonitorStore } from "@/stores/monitor-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import {
@@ -22,6 +23,7 @@ const CRON_PRESETS = [
 ];
 
 export function MonitorDialog() {
+  const { t } = useTranslation();
   const {
     monitors,
     results,
@@ -138,7 +140,7 @@ export function MonitorDialog() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-            <Clock className="h-4 w-4" /> Scheduled Monitors
+            <Clock className="h-4 w-4" /> {t("monitor.title")}
           </h2>
           <button onClick={closeDialog} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
             <X className="h-4 w-4" />
@@ -153,7 +155,7 @@ export function MonitorDialog() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Monitor name"
+                placeholder={t("monitor.create")}
                 className="w-full rounded bg-[var(--color-elevated)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none"
               />
               <select
@@ -203,7 +205,7 @@ export function MonitorDialog() {
                 className="flex w-full items-center justify-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 <Plus className="h-3 w-3" />
-                {creating ? "Creating..." : "Create Monitor"}
+                {creating ? "Creating..." : t("monitor.newMonitor")}
               </button>
               {error && <p className="text-xs text-red-400">{error}</p>}
             </div>
@@ -246,14 +248,14 @@ export function MonitorDialog() {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleToggle(m.id); }}
                         className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-elevated)]"
-                        title={m.enabled ? "Pause" : "Resume"}
+                        title={m.enabled ? t("monitor.enabled") : t("monitor.disabled")}
                       >
                         {m.enabled ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }}
                         className="rounded p-1 text-red-400 hover:bg-red-400/10"
-                        title="Delete"
+                        title={t("common.delete")}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>

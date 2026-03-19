@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   FolderOpen,
   Globe,
@@ -20,16 +21,16 @@ interface ActivityBarProps {
   onToggleConsole: () => void;
 }
 
-const TOP_ITEMS: { id: ActivityView; icon: typeof FolderOpen; label: string; color: string; glow: string }[] = [
-  { id: "collections", icon: FolderOpen, label: "Collections", color: "text-blue-400", glow: "bg-blue-400/10" },
-  { id: "environments", icon: Globe, label: "Environments", color: "text-emerald-400", glow: "bg-emerald-400/10" },
-  { id: "history", icon: Clock, label: "History", color: "text-amber-400", glow: "bg-amber-400/10" },
+const TOP_ITEMS: { id: ActivityView; icon: typeof FolderOpen; labelKey: string; color: string; glow: string }[] = [
+  { id: "collections", icon: FolderOpen, labelKey: "sidebar.collections", color: "text-blue-400", glow: "bg-blue-400/10" },
+  { id: "environments", icon: Globe, labelKey: "sidebar.environments", color: "text-emerald-400", glow: "bg-emerald-400/10" },
+  { id: "history", icon: Clock, labelKey: "history.title", color: "text-amber-400", glow: "bg-amber-400/10" },
 ];
 
-const BOTTOM_ITEMS: { id: ActivityView; icon: typeof Server; label: string; color: string; glow: string }[] = [
-  { id: "mock", icon: Server, label: "Mock Servers", color: "text-violet-400", glow: "bg-violet-400/10" },
-  { id: "monitor", icon: Activity, label: "Monitors", color: "text-rose-400", glow: "bg-rose-400/10" },
-  { id: "docs", icon: FileText, label: "API Docs", color: "text-cyan-400", glow: "bg-cyan-400/10" },
+const BOTTOM_ITEMS: { id: ActivityView; icon: typeof Server; labelKey: string; color: string; glow: string }[] = [
+  { id: "mock", icon: Server, labelKey: "mock.title", color: "text-violet-400", glow: "bg-violet-400/10" },
+  { id: "monitor", icon: Activity, labelKey: "monitor.title", color: "text-rose-400", glow: "bg-rose-400/10" },
+  { id: "docs", icon: FileText, labelKey: "docs.title", color: "text-cyan-400", glow: "bg-cyan-400/10" },
 ];
 
 export function ActivityBar({
@@ -39,6 +40,7 @@ export function ActivityBar({
   onOpenAi,
   onToggleConsole,
 }: ActivityBarProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex w-12 shrink-0 flex-col items-center border-r border-[var(--color-border)] bg-[var(--color-activity-bar)] py-3">
       {/* Logo */}
@@ -52,7 +54,7 @@ export function ActivityBar({
           <ActivityBarButton
             key={item.id}
             icon={item.icon}
-            label={item.label}
+            label={t(item.labelKey)}
             active={activeView === item.id}
             activeColor={item.color}
             activeGlow={item.glow}
@@ -69,7 +71,7 @@ export function ActivityBar({
           <ActivityBarButton
             key={item.id}
             icon={item.icon}
-            label={item.label}
+            label={t(item.labelKey)}
             active={activeView === item.id}
             activeColor={item.color}
             activeGlow={item.glow}
@@ -83,9 +85,9 @@ export function ActivityBar({
 
       {/* Bottom actions */}
       <div className="flex flex-col items-center gap-1">
-        <ActivityBarButton icon={MessageSquare} label="AI Assistant (Ctrl+Shift+A)" onClick={onOpenAi} activeColor="text-purple-400" activeGlow="bg-purple-400/10" />
-        <ActivityBarButton icon={Terminal} label="Console (Ctrl+`)" onClick={onToggleConsole} activeColor="text-orange-400" activeGlow="bg-orange-400/10" />
-        <ActivityBarButton icon={Settings} label="Settings (Ctrl+,)" onClick={onOpenSettings} />
+        <ActivityBarButton icon={MessageSquare} label={`${t("ai.title")} (Ctrl+Shift+A)`} onClick={onOpenAi} activeColor="text-purple-400" activeGlow="bg-purple-400/10" />
+        <ActivityBarButton icon={Terminal} label={`${t("console.title")} (Ctrl+\`)`} onClick={onToggleConsole} activeColor="text-orange-400" activeGlow="bg-orange-400/10" />
+        <ActivityBarButton icon={Settings} label={`${t("settings.title")} (Ctrl+,)`} onClick={onOpenSettings} />
       </div>
     </div>
   );

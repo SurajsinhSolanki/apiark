@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { previewDocs, generateDocs } from "@/lib/tauri-api";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
@@ -17,6 +18,7 @@ export function DocsPreviewDialog({
   collectionPath,
   collectionName,
 }: DocsPreviewDialogProps) {
+  const { t } = useTranslation();
   const [html, setHtml] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,20 +63,20 @@ export function DocsPreviewDialog({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-            <FileText className="h-4 w-4" /> API Documentation — {collectionName}
+            <FileText className="h-4 w-4" /> {t("docs.title")} — {collectionName}
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleExport("html")}
               className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
             >
-              <Download className="h-3 w-3" /> HTML
+              <Download className="h-3 w-3" /> {t("docs.html")}
             </button>
             <button
               onClick={() => handleExport("markdown")}
               className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-2.5 py-1 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
             >
-              <Download className="h-3 w-3" /> Markdown
+              <Download className="h-3 w-3" /> {t("docs.markdown")}
             </button>
             <button
               onClick={() => onOpenChange(false)}
@@ -89,7 +91,7 @@ export function DocsPreviewDialog({
         <div className="flex-1 overflow-hidden">
           {loading ? (
             <div className="flex h-full items-center justify-center text-sm text-[var(--color-text-muted)]">
-              Generating documentation...
+              {t("docs.generating")}
             </div>
           ) : error ? (
             <div className="flex h-full items-center justify-center text-sm text-red-400">

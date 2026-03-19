@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useMockStore } from "@/stores/mock-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { startMockServer, stopMockServer, listMockServers } from "@/lib/tauri-api";
@@ -7,6 +8,7 @@ import type { MockRequestLog } from "@apiark/types";
 import { Play, Square, Trash2, X } from "lucide-react";
 
 export function MockServerDialog() {
+  const { t } = useTranslation();
   const { servers, logs, dialogOpen, closeDialog, addServer, removeServer, addLog, clearLogs, setServers } =
     useMockStore();
   const collections = useCollectionStore((s) => s.collections);
@@ -90,7 +92,7 @@ export function MockServerDialog() {
       <div className="flex h-[600px] w-[900px] flex-col overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Mock Servers</h2>
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">{t("mock.title")}</h2>
           <button onClick={closeDialog} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
             <X className="h-4 w-4" />
           </button>
@@ -101,7 +103,7 @@ export function MockServerDialog() {
           <div className="flex w-[340px] flex-col border-r border-[var(--color-border)]">
             {/* Start new server */}
             <div className="space-y-2 border-b border-[var(--color-border)] p-3">
-              <label className="block text-xs font-medium text-[var(--color-text-muted)]">Collection</label>
+              <label className="block text-xs font-medium text-[var(--color-text-muted)]">{t("mock.collection")}</label>
               <select
                 value={selectedCollection}
                 onChange={(e) => setSelectedCollection(e.target.value)}
@@ -114,7 +116,7 @@ export function MockServerDialog() {
 
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="block text-xs text-[var(--color-text-muted)]">Port</label>
+                  <label className="block text-xs text-[var(--color-text-muted)]">{t("mock.port")}</label>
                   <input
                     type="number"
                     value={port}
@@ -123,7 +125,7 @@ export function MockServerDialog() {
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs text-[var(--color-text-muted)]">Latency (ms)</label>
+                  <label className="block text-xs text-[var(--color-text-muted)]">{t("mock.latency")}</label>
                   <input
                     type="number"
                     value={latencyMs}
@@ -150,7 +152,7 @@ export function MockServerDialog() {
                 className="flex w-full items-center justify-center gap-1 rounded bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
               >
                 <Play className="h-3 w-3" />
-                {starting ? "Starting..." : "Start Mock Server"}
+                {starting ? t("mock.starting") : t("mock.start")}
               </button>
 
               {error && (
@@ -162,7 +164,7 @@ export function MockServerDialog() {
             <div className="flex-1 overflow-auto">
               {servers.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-xs text-[var(--color-text-dimmed)]">
-                  No mock servers running
+                  {t("mock.noServers")}
                 </div>
               ) : (
                 servers.map((srv) => (
@@ -184,7 +186,7 @@ export function MockServerDialog() {
                     <button
                       onClick={(e) => { e.stopPropagation(); handleStop(srv.id); }}
                       className="rounded p-1 text-red-400 hover:bg-red-400/10"
-                      title="Stop server"
+                      title={t("mock.stopServer")}
                     >
                       <Square className="h-3 w-3" />
                     </button>
@@ -200,7 +202,7 @@ export function MockServerDialog() {
               <>
                 {/* Endpoints */}
                 <div className="border-b border-[var(--color-border)] p-3">
-                  <h3 className="mb-1 text-xs font-medium text-[var(--color-text-muted)]">Endpoints</h3>
+                  <h3 className="mb-1 text-xs font-medium text-[var(--color-text-muted)]">{t("mock.endpoints")}</h3>
                   <div className="max-h-[140px] overflow-auto">
                     {activeServer.endpoints.map((ep, i) => (
                       <div key={i} className="flex items-center gap-2 py-0.5 text-xs">
@@ -216,11 +218,11 @@ export function MockServerDialog() {
 
                 {/* Request log */}
                 <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-1.5">
-                  <h3 className="text-xs font-medium text-[var(--color-text-muted)]">Request Log</h3>
+                  <h3 className="text-xs font-medium text-[var(--color-text-muted)]">{t("mock.requestLog")}</h3>
                   <button
                     onClick={() => clearLogs(activeServer.id)}
                     className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-                    title="Clear logs"
+                    title={t("mock.clearLogs")}
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -246,7 +248,7 @@ export function MockServerDialog() {
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center text-xs text-[var(--color-text-dimmed)]">
-                Select a server to view details
+                {t("mock.selectServer")}
               </div>
             )}
           </div>

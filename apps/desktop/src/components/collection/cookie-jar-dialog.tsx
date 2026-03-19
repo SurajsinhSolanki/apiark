@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cookie, Trash2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { getCookieJar, deleteCookie, clearCookieJar } from "@/lib/tauri-api";
 import type { CookieJarEntry } from "@apiark/types";
 
@@ -17,6 +18,7 @@ export function CookieJarDialog({
   collectionPath,
   collectionName,
 }: CookieJarDialogProps) {
+  const { t } = useTranslation();
   const [cookies, setCookies] = useState<CookieJarEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -71,7 +73,7 @@ export function CookieJarDialog({
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
             <Dialog.Title className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
               <Cookie className="h-4 w-4" />
-              Cookie Jar — {collectionName}
+              {t("cookies.title")} — {collectionName}
             </Dialog.Title>
             <div className="flex items-center gap-2">
               {cookies.length > 0 && (
@@ -79,7 +81,7 @@ export function CookieJarDialog({
                   onClick={handleClearAll}
                   className="rounded bg-red-500/10 px-2 py-1 text-xs text-red-400 hover:bg-red-500/20"
                 >
-                  Clear All
+                  {t("cookies.clearAll")}
                 </button>
               )}
               <Dialog.Close className="rounded p-1 hover:bg-[var(--color-elevated)]">
@@ -91,20 +93,20 @@ export function CookieJarDialog({
           {/* Content */}
           <div className="max-h-[60vh] overflow-auto p-4">
             {loading ? (
-              <p className="text-center text-sm text-[var(--color-text-muted)]">Loading...</p>
+              <p className="text-center text-sm text-[var(--color-text-muted)]">{t("common.loading")}</p>
             ) : cookies.length === 0 ? (
               <p className="text-center text-sm text-[var(--color-text-dimmed)]">
-                No cookies stored for this collection.
+                {t("cookies.noCookies")}
               </p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-[var(--color-text-muted)]">
-                    <th className="pb-2 pr-3">Name</th>
-                    <th className="pb-2 pr-3">Value</th>
-                    <th className="pb-2 pr-3">Domain</th>
-                    <th className="pb-2 pr-3">Path</th>
-                    <th className="pb-2 pr-3">Flags</th>
+                    <th className="pb-2 pr-3">{t("cookies.name")}</th>
+                    <th className="pb-2 pr-3">{t("cookies.value")}</th>
+                    <th className="pb-2 pr-3">{t("cookies.domain")}</th>
+                    <th className="pb-2 pr-3">{t("cookies.path")}</th>
+                    <th className="pb-2 pr-3">{t("cookies.flags")}</th>
                     <th className="pb-2 w-8"></th>
                   </tr>
                 </thead>
@@ -121,8 +123,8 @@ export function CookieJarDialog({
                       <td className="py-2 pr-3 text-[var(--color-text-muted)]">{cookie.path}</td>
                       <td className="py-2 pr-3 text-[var(--color-text-dimmed)]">
                         {[
-                          cookie.httpOnly && "HttpOnly",
-                          cookie.secure && "Secure",
+                          cookie.httpOnly && t("cookies.httpOnly"),
+                          cookie.secure && t("cookies.secure"),
                           cookie.sameSite,
                         ].filter(Boolean).join(", ") || "—"}
                       </td>
@@ -130,7 +132,7 @@ export function CookieJarDialog({
                         <button
                           onClick={() => handleDelete(cookie.name, cookie.domain)}
                           className="rounded p-1 text-[var(--color-text-muted)] hover:bg-red-500/10 hover:text-red-400"
-                          title="Delete cookie"
+                          title={t("cookies.deleteCookie")}
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>

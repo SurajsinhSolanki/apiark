@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { useConsoleStore, type ConsoleLogEntry } from "@/stores/console-store";
 import { Terminal, ScrollText, ChevronDown, Trash2, Filter } from "lucide-react";
 
@@ -16,6 +17,7 @@ interface BottomPanelProps {
 }
 
 export function BottomPanel({ terminalOpen, onTerminalOpenChange }: BottomPanelProps) {
+  const { t } = useTranslation();
   const consoleOpen = useConsoleStore((s) => s.open);
   const [activeTab, setActiveTab] = useState<BottomTab>("console");
   const [height, setHeight] = useState(250);
@@ -84,13 +86,13 @@ export function BottomPanel({ terminalOpen, onTerminalOpenChange }: BottomPanelP
       <div className="flex items-center border-b border-[var(--color-border)] px-1">
         <PanelTab
           icon={ScrollText}
-          label="Console"
+          label={t("console.title")}
           active={activeTab === "console"}
           onClick={() => toggleTab("console")}
         />
         <PanelTab
           icon={Terminal}
-          label="Terminal"
+          label={t("console.terminal")}
           active={activeTab === "terminal"}
           onClick={() => toggleTab("terminal")}
         />
@@ -103,7 +105,7 @@ export function BottomPanel({ terminalOpen, onTerminalOpenChange }: BottomPanelP
         <button
           onClick={closePanel}
           className="rounded-md p-1 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-secondary)]"
-          title="Close panel"
+          title={t("console.closePanel")}
         >
           <ChevronDown className="h-4 w-4" />
         </button>
@@ -190,6 +192,7 @@ function ConsoleControls() {
 }
 
 function ConsoleContent() {
+  const { t } = useTranslation();
   const entries = useConsoleStore((s) => s.entries);
   const filter = useConsoleStore((s) => s.filter);
   const listRef = useRef<HTMLDivElement>(null);
@@ -207,7 +210,7 @@ function ConsoleContent() {
     <div ref={listRef} className="h-full overflow-auto font-mono text-sm">
       {filtered.length === 0 ? (
         <div className="flex h-full items-center justify-center text-[var(--color-text-dimmed)]">
-          No console output
+          {t("console.noLogs")}
         </div>
       ) : (
         filtered.map((entry) => <ConsoleRow key={entry.id} entry={entry} />)

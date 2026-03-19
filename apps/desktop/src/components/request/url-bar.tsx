@@ -1,4 +1,5 @@
 import { forwardRef, useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import type { HttpMethod, EnvironmentData } from "@apiark/types";
@@ -88,6 +89,7 @@ function VariableEditor({
   onSave: (name: string, value: string) => Promise<void>;
   activeEnvName: string | null;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(resolved ?? "");
   const [saving, setSaving] = useState(false);
@@ -181,7 +183,7 @@ function VariableEditor({
                 onClick={handleSave}
                 disabled={saving}
                 className="shrink-0 rounded-md bg-[var(--color-accent)] p-1.5 text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
-                title="Save"
+                title={t("common.save")}
               >
                 {saving ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -204,6 +206,7 @@ function VariableEditor({
 }
 
 export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) {
+  const { t } = useTranslation();
   const tab = useActiveTab();
   const { setMethod, setUrl, send } = useTabStore();
   const [resolvedVars, setResolvedVars] = useState<Record<string, string>>({});
@@ -318,7 +321,7 @@ export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) 
           onKeyDown={handleKeyDown}
           onFocus={() => setInputFocused(true)}
           onBlur={() => setInputFocused(false)}
-          placeholder="Enter request URL..."
+          placeholder={t("request.urlPlaceholder")}
           className={`w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-elevated)] px-4 py-2 text-sm outline-none transition-all focus:border-[var(--color-accent)]/50 focus:ring-2 focus:ring-[var(--color-accent)]/20 ${
             hasVariablesInUrl && !inputFocused
               ? "text-transparent caret-[var(--color-text-primary)]"
@@ -367,7 +370,7 @@ export const UrlBar = forwardRef<HTMLInputElement>(function UrlBar(_props, ref) 
           ) : (
             <Send className="h-4 w-4" />
           )}
-          Send
+          {t("request.send")}
         </button>
         <HintTooltip hintId="send-shortcut" message="Tip: Press Ctrl+Enter to send requests quickly" />
       </div>

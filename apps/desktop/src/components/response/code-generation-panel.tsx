@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Copy, Check } from "lucide-react";
 import { useActiveTab } from "@/stores/tab-store";
 import { useEnvironmentStore } from "@/stores/environment-store";
@@ -77,6 +78,7 @@ function resolveTab(tab: Tab, vars: Record<string, string>): Tab {
 }
 
 export function CodeGenerationPanel() {
+  const { t } = useTranslation();
   const tab = useActiveTab();
   const [language, setLanguage] = useState<Language>("curl");
   const [copied, setCopied] = useState(false);
@@ -141,7 +143,7 @@ export function CodeGenerationPanel() {
           ) : (
             <>
               <Copy className="h-3 w-3" />
-              Copy
+              {t("common.copy")}
             </>
           )}
         </button>

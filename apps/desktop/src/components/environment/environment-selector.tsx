@@ -1,9 +1,11 @@
 import { useEffect, forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useEnvironmentStore } from "@/stores/environment-store";
 import { useCollectionStore } from "@/stores/collection-store";
 
 export const EnvironmentSelector = forwardRef<HTMLSelectElement>(
   function EnvironmentSelector(_props, ref) {
+    const { t } = useTranslation();
     const { environments, activeEnvironmentName, setActiveEnvironment, loadEnvironments } =
       useEnvironmentStore();
     const { collections } = useCollectionStore();
@@ -21,7 +23,7 @@ export const EnvironmentSelector = forwardRef<HTMLSelectElement>(
     if (environments.length === 0) {
       return (
         <p className="text-xs text-[var(--color-text-dimmed)]">
-          No environments found
+          {t("environment.noEnvironments")}
         </p>
       );
     }
@@ -36,7 +38,7 @@ export const EnvironmentSelector = forwardRef<HTMLSelectElement>(
         }
         className="w-full rounded bg-[var(--color-elevated)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-blue-500"
       >
-        <option value="">No Environment</option>
+        <option value="">{t("environment.noEnvironment")}</option>
         {environments.map((env) => (
           <option key={env.name} value={env.name}>
             {env.name}

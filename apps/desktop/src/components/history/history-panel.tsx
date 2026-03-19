@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { HttpMethod } from "@apiark/types";
 import { useHistoryStore } from "@/stores/history-store";
 import { useTabStore } from "@/stores/tab-store";
@@ -38,6 +39,7 @@ function timeAgo(timestamp: string): string {
 const ROW_HEIGHT = 32;
 
 export function HistoryPanel() {
+  const { t } = useTranslation();
   const { entries, loading, loadHistory, searchHistory, clearHistory } =
     useHistoryStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,7 +84,7 @@ export function HistoryPanel() {
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search history..."
+            placeholder={t("history.search")}
             className="w-full bg-transparent px-1.5 py-1 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none"
           />
         </div>
@@ -90,7 +92,7 @@ export function HistoryPanel() {
           <button
             onClick={clearHistory}
             className="rounded p-1 text-[var(--color-text-dimmed)] hover:bg-[var(--color-border)] hover:text-red-400"
-            title="Clear history"
+            title={t("history.clear")}
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -102,12 +104,12 @@ export function HistoryPanel() {
         <HistorySkeleton />
       ) : entries.length === 0 ? (
         searchQuery ? (
-          <p className="py-2 text-center text-xs text-[var(--color-text-dimmed)]">No results</p>
+          <p className="py-2 text-center text-xs text-[var(--color-text-dimmed)]">{t("history.noResults")}</p>
         ) : (
           <EmptyState
             icon={<ClockEmptyIcon size={32} />}
-            title="No history yet"
-            description="Send a request to see it here"
+            title={t("history.noHistory")}
+            description={t("history.noHistory")}
           />
         )
       ) : (

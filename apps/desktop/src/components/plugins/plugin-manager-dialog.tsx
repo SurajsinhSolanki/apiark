@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Power, Trash2, FolderOpen, Puzzle } from "lucide-react";
 import { listPlugins, togglePlugin, uninstallPlugin, installPlugin, type PluginInfo } from "@/lib/tauri-api";
@@ -10,6 +11,7 @@ interface PluginManagerDialogProps {
 }
 
 export function PluginManagerDialog({ open, onOpenChange }: PluginManagerDialogProps) {
+  const { t } = useTranslation();
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -132,14 +134,14 @@ export function PluginManagerDialog({ open, onOpenChange }: PluginManagerDialogP
                           ? "text-green-400 hover:bg-green-500/10"
                           : "text-[var(--color-text-dimmed)] hover:bg-[var(--color-surface)]"
                       }`}
-                      title={p.enabled ? "Disable" : "Enable"}
+                      title={p.enabled ? t("monitor.disabled") : t("app.enable")}
                     >
                       <Power className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleUninstall(p.manifest.name)}
                       className="rounded p-1.5 text-[var(--color-text-muted)] hover:bg-red-500/10 hover:text-red-400"
-                      title="Uninstall"
+                      title={t("common.delete")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

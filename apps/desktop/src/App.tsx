@@ -40,11 +40,13 @@ import { ToastContainer } from "@/components/ui/toast-container";
 import { SaveAsDialog } from "@/components/request/save-as-dialog";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useResponsive } from "@/hooks/use-responsive";
+import { useTranslation } from "react-i18next";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { StatusBar } from "@/components/layout/status-bar";
 import { PanelDivider } from "@/components/ui/panel-divider";
 
 function App() {
+  const { t } = useTranslation();
   const { newTab, closeTab, save, send, persistTabs, restoreTabs, undoTab, redoTab } = useTabStore();
   const activeTab = useActiveTab();
   const tabs = useTabStore((s) => s.tabs);
@@ -113,6 +115,13 @@ function App() {
 
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   const openCurlImport = useCallback(() => setCurlImportOpen(true), []);
+
+  // Listen for cURL import event from NewTabDropdown
+  useEffect(() => {
+    const handler = () => setCurlImportOpen(true);
+    window.addEventListener("apiark:open-curl-import", handler);
+    return () => window.removeEventListener("apiark:open-curl-import", handler);
+  }, []);
 
   // Toggle side panel when clicking same activity view
   const handleViewChange = useCallback((view: ActivityView) => {
@@ -246,12 +255,12 @@ function App() {
       {autoSaveError && (
         <div className="flex items-center gap-2 bg-[var(--color-error)]/10 px-4 py-2 text-sm text-[var(--color-error)]">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          <span className="flex-1">Auto-save failed: {autoSaveError}</span>
+          <span className="flex-1">{t("errors.autoSaveFailed", { reason: autoSaveError })}</span>
           <button
             onClick={() => useTabStore.getState().autoSave()}
             className="rounded-md bg-[var(--color-error)]/20 px-2 py-0.5 text-xs hover:bg-[var(--color-error)]/30"
           >
-            Retry
+            {t("common.retry")}
           </button>
           <button
             onClick={() => useTabStore.getState().clearAutoSaveError()}
@@ -332,7 +341,7 @@ function App() {
       {/* Zen mode indicator */}
       {zenMode && (
         <div className="absolute left-1/2 top-3 z-50 -translate-x-1/2 animate-fade-in rounded-lg bg-[var(--color-elevated)] px-3 py-1 text-xs text-[var(--color-text-dimmed)] opacity-60">
-          Zen Mode — Press Esc to exit
+          {t("app.zenMode")}
         </div>
       )}
 
@@ -525,6 +534,7 @@ function ProtocolView({
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
   const { newTab, newGraphQLTab, newWebSocketTab } = useTabStore();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6">
@@ -535,10 +545,10 @@ function EmptyState() {
 
       <div className="text-center">
         <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-          Ready to build something?
+          {t("app.readyToBuild")}
         </h2>
         <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Create a new request or open a collection to get started
+          {t("app.readyToBuildDesc")}
         </p>
       </div>
 
@@ -547,7 +557,7 @@ function EmptyState() {
           onClick={newTab}
           className="flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-[var(--color-accent-hover)] active:scale-[0.98]"
         >
-          HTTP Request
+          {t("tabs.httpRequest")}
         </button>
         <button
           onClick={newGraphQLTab}
@@ -578,6 +588,7 @@ function EmptyState() {
 }
 
 function UpdateBanner() {
+  const { t } = useTranslation();
   const [update, setUpdate] = useState<{ version: string; install: () => Promise<void> } | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [installing, setInstalling] = useState(false);
@@ -665,7 +676,7 @@ function UpdateBanner() {
               </div>
               <div>
                 <Dialog.Title className="text-base font-semibold text-[var(--color-text-primary)]">
-                  Update Available
+                  {t("app.updateAvailable")}
                 </Dialog.Title>
                 <p className="text-sm text-[var(--color-text-secondary)]">
                   ApiArk v{update.version} is ready
@@ -713,7 +724,7 @@ function UpdateBanner() {
                   onClick={() => setDismissed(true)}
                   className="rounded-lg px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]"
                 >
-                  {isSystemPackage ? "Dismiss" : "Later"}
+                  {isSystemPackage ? t("app.dismiss") : t("app.later")}
                 </button>
               )}
               {!isSystemPackage && !installing && !isFinished && (
@@ -728,7 +739,7 @@ function UpdateBanner() {
                   }}
                   className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                 >
-                  Update Now
+                  {t("app.updateNow")}
                 </button>
               )}
               {isFinished && (
@@ -736,7 +747,7 @@ function UpdateBanner() {
                   onClick={() => setDismissed(true)}
                   className="rounded-lg bg-[var(--color-success)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
                 >
-                  OK
+                  {t("app.ok")}
                 </button>
               )}
             </div>
@@ -748,6 +759,7 @@ function UpdateBanner() {
 }
 
 function CrashReportBanner() {
+  const { t } = useTranslation();
   const { settings, updateSettings } = useSettingsStore();
   if (settings.crashReportsEnabled !== null) return null;
 
@@ -755,19 +767,19 @@ function CrashReportBanner() {
     <div className="flex items-center gap-2 bg-[var(--color-accent)]/10 px-4 py-2 text-sm text-[var(--color-accent)]">
       <Shield className="h-4 w-4 shrink-0" />
       <span className="flex-1">
-        Help improve ApiArk by sending anonymous crash reports? No request data is ever included.
+        {t("app.crashReportPrompt")}
       </span>
       <button
         onClick={() => updateSettings({ crashReportsEnabled: true })}
         className="rounded-md bg-[var(--color-accent)]/20 px-3 py-0.5 text-xs font-medium hover:bg-[var(--color-accent)]/30"
       >
-        Enable
+        {t("app.enable")}
       </button>
       <button
         onClick={() => updateSettings({ crashReportsEnabled: false })}
         className="rounded-md bg-[var(--color-accent)]/20 px-3 py-0.5 text-xs font-medium hover:bg-[var(--color-accent)]/30"
       >
-        No thanks
+        {t("app.noThanks")}
       </button>
     </div>
   );
@@ -814,6 +826,7 @@ function ConflictBanner({ tabId, conflictState }: { tabId: string; conflictState
 }
 
 function MigrationDialog() {
+  const { t } = useTranslation();
   const { migrationPrompt, dismissMigration, acceptMigration, openReadOnly } =
     useCollectionStore();
 
@@ -827,7 +840,7 @@ function MigrationDialog() {
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl focus:outline-none">
           <div className="border-b border-[var(--color-border)] px-6 py-4">
             <Dialog.Title className="text-base font-semibold text-[var(--color-text-primary)]">
-              {status.isNewer ? "Newer Collection Format" : "Collection Format Upgrade"}
+              {status.isNewer ? t("migration.newerFormat") : t("migration.title")}
             </Dialog.Title>
           </div>
           <div className="space-y-3 px-6 py-4">
@@ -853,9 +866,9 @@ function MigrationDialog() {
           </div>
           <div className="flex justify-end gap-2 border-t border-[var(--color-border)] px-6 py-3">
             <button onClick={dismissMigration} className="rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-elevated)]">Cancel</button>
-            <button onClick={openReadOnly} className="rounded-lg bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]">Open Read-Only</button>
+            <button onClick={openReadOnly} className="rounded-lg bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-border)]">{t("migration.readOnly")}</button>
             {!status.isNewer && (
-              <button onClick={acceptMigration} className="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-sm text-white hover:brightness-110">Upgrade</button>
+              <button onClick={acceptMigration} className="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-sm text-white hover:brightness-110">{t("migration.upgrade")}</button>
             )}
           </div>
         </Dialog.Content>

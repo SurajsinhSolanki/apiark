@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AiAssistantDialogProps {
   open: boolean;
@@ -7,6 +8,7 @@ interface AiAssistantDialogProps {
 }
 
 export function AiAssistantDialog({ open, onOpenChange }: AiAssistantDialogProps) {
+  const { t } = useTranslation();
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -15,7 +17,7 @@ export function AiAssistantDialog({ open, onOpenChange }: AiAssistantDialogProps
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
             <Dialog.Title className="flex items-center gap-2 text-base font-semibold text-[var(--color-text-primary)]">
               <MessageSquare className="h-5 w-5 text-[var(--color-accent)]" />
-              AI Assistant
+              {t("ai.title")}
             </Dialog.Title>
             <Dialog.Close className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-elevated)] hover:text-[var(--color-text-primary)]">
               <X className="h-4 w-4" />
@@ -28,10 +30,10 @@ export function AiAssistantDialog({ open, onOpenChange }: AiAssistantDialogProps
             </div>
             <div>
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Coming Soon
+                {t("ai.comingSoon")}
               </h3>
               <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-                AI-powered request generation, test creation, and natural language API exploration are on the way.
+                {t("ai.comingSoonDesc")}
               </p>
             </div>
           </div>

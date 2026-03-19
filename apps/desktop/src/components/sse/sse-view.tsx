@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useActiveTab } from "@/stores/tab-store";
 import { useTabStore } from "@/stores/tab-store";
 import { useSSE } from "@/hooks/use-sse";
@@ -6,6 +7,7 @@ import { KeyValueEditor } from "@/components/request/key-value-editor";
 import { Plug, Unplug, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
 export function SSEView() {
+  const { t } = useTranslation();
   const tab = useActiveTab();
   const { setUrl, setHeaders } = useTabStore();
   const [filter, setFilter] = useState("");
@@ -82,12 +84,12 @@ export function SSEView() {
           {status === "connected" ? (
             <>
               <Unplug className="h-3.5 w-3.5" />
-              Disconnect
+              {t("sse.disconnect")}
             </>
           ) : (
             <>
               <Plug className="h-3.5 w-3.5" />
-              {status === "connecting" ? "Connecting..." : "Connect"}
+              {status === "connecting" ? "Connecting..." : t("sse.connect")}
             </>
           )}
         </button>
@@ -127,7 +129,7 @@ export function SSEView() {
       {/* Stats and filter bar */}
       <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-1 text-xs text-[var(--color-text-muted)]">
         <div className="flex gap-3">
-          <span>Events: {events.length}</span>
+          <span>{t("sse.events")}: {events.length}</span>
           {eventTypes.length > 0 && (
             <span>Types: {eventTypes.join(", ")}</span>
           )}
@@ -152,7 +154,7 @@ export function SSEView() {
           <button
             onClick={clearEvents}
             className="flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-[var(--color-elevated)]"
-            title="Clear events"
+            title={t("console.clear")}
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -163,7 +165,7 @@ export function SSEView() {
       <div ref={logRef} className="flex-1 overflow-auto">
         {filteredEvents.length === 0 ? (
           <div className="flex items-center justify-center py-8 text-sm text-[var(--color-text-dimmed)]">
-            {status === "connected" ? "Waiting for events..." : "Connect to start streaming"}
+            {status === "connected" ? "Waiting for events..." : t("sse.connectToStart")}
           </div>
         ) : (
           filteredEvents.map((event, i) => (
