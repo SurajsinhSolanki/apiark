@@ -3,7 +3,9 @@ import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { grpcLoadProto, grpcCallUnary } from "@/lib/tauri-api";
 import { open } from "@tauri-apps/plugin-dialog";
 import type { GrpcState } from "@apiark/types";
-import { Play, Upload } from "lucide-react";
+import { Upload, Send, Loader2 } from "lucide-react";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { UrlBar } from "@/components/request/url-bar";
 
 export function GrpcView() {
   const { t } = useTranslation();
@@ -75,34 +77,32 @@ export function GrpcView() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* URL bar */}
-      <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-3 py-2">
-        <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs font-bold text-green-400">
-          gRPC
-        </span>
-        <input
-          type="text"
-          value={tab.url}
-          onChange={(e) => useTabStore.getState().setUrl(e.target.value)}
-          placeholder="grpc://localhost:50051"
-          className="flex-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] outline-none focus:ring-1 focus:ring-blue-500"
-        />
-        <button
-          onClick={handleLoadProto}
-          className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
-        >
-          <Upload className="h-3 w-3" />
-          {t("grpc.loadProto")}
-        </button>
-        <button
-          onClick={handleSend}
-          disabled={grpc.loading || !grpc.selectedMethod}
-          className="flex items-center gap-1 rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Play className="h-3.5 w-3.5" />
-          {grpc.loading ? t("request.sending") : t("request.send")}
-        </button>
-      </div>
+      <Breadcrumb />
+      <UrlBar
+        extraActions={
+          <button
+            onClick={handleLoadProto}
+            className="flex items-center gap-1 rounded-lg bg-[var(--color-elevated)] px-2.5 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)]"
+          >
+            <Upload className="h-3 w-3" />
+            {t("grpc.loadProto")}
+          </button>
+        }
+        sendButton={
+          <button
+            onClick={handleSend}
+            disabled={grpc.loading || !grpc.selectedMethod}
+            className="flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
+          >
+            {grpc.loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            {t("request.send")}
+          </button>
+        }
+      />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel: service/method selection + request */}

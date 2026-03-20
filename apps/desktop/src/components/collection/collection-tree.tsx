@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { CollectionNode, CollectionDefaults, HttpMethod } from "@apiark/types";
 import { useCollectionStore } from "@/stores/collection-store";
@@ -41,6 +42,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useVirtualizer } from "@tanstack/react-virtual";
+
+// Global event to ensure only one context menu is open at a time
+const CLOSE_ALL_MENUS = "collection-tree:close-all-menus";
 
 const METHOD_COLORS: Record<HttpMethod, string> = {
   GET: "text-green-500",
@@ -362,25 +366,78 @@ function TreeNodeRow({
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [cookieSettingsPath, setCookieSettingsPath] = useState<string | null>(null);
+  const [newRequestDialog, setNewRequestDialog] = useState(false);
+  const [newFolderDialog, setNewFolderDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteCollectionConfirm, setDeleteCollectionConfirm] = useState(false);
 
   const isExpanded = expandedPaths.has(node.path);
 
+  // Close this menu when another node opens its menu
+  useEffect(() => {
+    const handler = () => setContextMenu(null);
+    window.addEventListener(CLOSE_ALL_MENUS, handler);
+    return () => window.removeEventListener(CLOSE_ALL_MENUS, handler);
+  }, []);
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
+    // Close all other open context menus first
+    window.dispatchEvent(new Event(CLOSE_ALL_MENUS));
+    // Open this one on next tick so our own listener doesn't close it
+    requestAnimationFrame(() => setContextMenu({ x: e.clientX, y: e.clientY }));
   };
 
   const closeContextMenu = () => setContextMenu(null);
 
-  const handleNewRequest = async () => {
+  const handleNewRequest = () => {
     closeContextMenu();
+    setNewRequestDialog(true);
+  };
+
+  const handleCreateRequest = async (name: string, protocol?: Protocol) => {
     const dir = node.type === "request" ? collectionPath : node.path;
-    const name = prompt("Request name:");
-    if (!name) return;
     const filename = name.toLowerCase().replace(/\s+/g, "-");
     try {
       const path = await createRequest(dir, filename, name, collectionPath);
       await openTab(path, collectionPath);
+      // For non-HTTP protocols, update the tab after opening then save to disk
+      if (protocol && protocol !== "http") {
+        const tabStore = useTabStore.getState();
+        const tab = tabStore.tabs.find((t) => t.filePath === path);
+        if (tab) {
+          const patch: Record<string, unknown> = { protocol };
+          if (protocol === "graphql") {
+            patch.method = "POST";
+            patch.graphql = { query: "", variables: "{}", operationName: "", schemaJson: null };
+          } else if (protocol === "websocket") {
+            patch.url = "ws://localhost:8080";
+          } else if (protocol === "sse") {
+            patch.url = "";
+          } else if (protocol === "grpc") {
+            patch.url = "http://localhost:50051";
+            patch.grpc = {
+              services: [],
+              selectedService: null,
+              selectedMethod: null,
+              requestJson: "{}",
+              metadata: [{ id: `kv_${Date.now()}`, key: "", value: "", enabled: true }],
+              loading: false,
+              response: null,
+              error: null,
+            };
+          }
+          useTabStore.setState((state) => ({
+            tabs: state.tabs.map((t) =>
+              t.id === tab.id ? { ...t, ...patch } : t,
+            ),
+          }));
+          // Save to disk so the sidebar reflects the correct protocol
+          await useTabStore.getState().save();
+          // Refresh sidebar
+          await useCollectionStore.getState().refreshCollection(collectionPath);
+        }
+      }
     } catch (err) {
       import("@/stores/toast-store").then(({ useToastStore }) =>
         useToastStore.getState().showError(`Failed to create request: ${err}`),
@@ -388,11 +445,13 @@ function TreeNodeRow({
     }
   };
 
-  const handleNewFolder = async () => {
+  const handleNewFolder = () => {
     closeContextMenu();
+    setNewFolderDialog(true);
+  };
+
+  const handleCreateFolder = async (name: string) => {
     const dir = node.type === "request" ? collectionPath : node.path;
-    const name = prompt("Folder name:");
-    if (!name) return;
     try {
       await createFolder(dir, name);
     } catch (err) {
@@ -402,19 +461,46 @@ function TreeNodeRow({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     closeContextMenu();
+    setDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      const { ask } = await import("@tauri-apps/plugin-dialog");
-      const confirmed = await ask(`Delete "${node.name}"?`, {
-        title: t("confirmDelete.title"),
-        kind: "warning",
-      });
-      if (!confirmed) return;
       await deleteItem(node.path, collectionName, collectionPath);
     } catch (err) {
       import("@/stores/toast-store").then(({ useToastStore }) =>
         useToastStore.getState().showError(`Failed to delete: ${err}`),
+      );
+    }
+  };
+
+  const confirmDeleteCollection = async () => {
+    try {
+      // Close tabs belonging to this collection first to avoid file watcher conflicts
+      const { useTabStore } = await import("@/stores/tab-store");
+      const tabStore = useTabStore.getState();
+      const tabsToClose = tabStore.tabs.filter((t) => t.collectionPath === collectionPath);
+      for (const tab of tabsToClose) {
+        tabStore.closeTab(tab.id);
+      }
+      // Close collection from sidebar (stops file watcher)
+      useCollectionStore.getState().closeCollection(collectionPath);
+      // Now delete the files
+      const { deleteItem: deleteItemApi } = await import("@/lib/tauri-api");
+      const trashPath = await deleteItemApi(node.path, collectionName);
+      const { useUndoStore } = await import("@/stores/undo-store");
+      useUndoStore.getState().pushUndo({
+        type: "delete",
+        path: node.path,
+        collectionPath,
+        collectionName,
+        trashPath,
+      });
+    } catch (err) {
+      import("@/stores/toast-store").then(({ useToastStore }) =>
+        useToastStore.getState().showError(`Failed to delete collection: ${err}`),
       );
     }
   };
@@ -452,9 +538,19 @@ function TreeNodeRow({
             <GripVertical className="h-3 w-3 text-[var(--color-text-muted)]" />
           </span>
           <span
-            className={`w-9 shrink-0 text-[10px] font-bold ${node.isGraphql ? "text-violet-400" : METHOD_COLORS[node.method]}`}
+            className={`w-9 shrink-0 text-[10px] font-bold ${
+              node.protocol === "graphql" || node.isGraphql ? "text-violet-400"
+              : node.protocol === "websocket" ? "text-cyan-400"
+              : node.protocol === "sse" ? "text-orange-400"
+              : node.protocol === "grpc" ? "text-green-400"
+              : METHOD_COLORS[node.method]
+            }`}
           >
-            {node.isGraphql ? "GQL" : node.method}
+            {node.protocol === "graphql" || node.isGraphql ? "GQL"
+              : node.protocol === "websocket" ? "WS"
+              : node.protocol === "sse" ? "SSE"
+              : node.protocol === "grpc" ? "gRPC"
+              : node.method}
           </span>
           {renaming ? (
             <input
@@ -513,6 +609,13 @@ function TreeNodeRow({
             ]}
           />
         )}
+        <ConfirmDialog
+          open={deleteConfirm}
+          onOpenChange={setDeleteConfirm}
+          title={t("confirmDelete.title")}
+          message={`${t("confirmDelete.message", `Delete "${node.name}"?`)}`}
+          onConfirm={confirmDelete}
+        />
       </>
     );
   }
@@ -555,7 +658,7 @@ function TreeNodeRow({
               if (e.key === "Enter") submitRename();
               if (e.key === "Escape") setRenaming(false);
             }}
-            className="flex-1 rounded bg-[var(--color-elevated)] px-1 text-sm text-[var(--color-text-primary)] outline-none ring-1 ring-blue-500"
+            className="min-w-0 flex-1 rounded bg-[var(--color-elevated)] px-1 text-sm text-[var(--color-text-primary)] outline-none ring-1 ring-blue-500"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -583,16 +686,32 @@ function TreeNodeRow({
               </>
             )}
             {node.type === "collection" && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  useCollectionStore.getState().closeCollection(collectionPath);
-                }}
-                className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
-                title={t("sidebar.closeCollection")}
-              >
-                <FolderX className="h-3 w-3" />
-              </button>
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleRename(); }}
+                  className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+                  title={t("common.rename")}
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                  className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-red-500/20 hover:text-red-400"
+                  title={t("common.delete")}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    useCollectionStore.getState().closeCollection(collectionPath);
+                  }}
+                  className="rounded p-0.5 text-[var(--color-text-muted)] hover:bg-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+                  title={t("sidebar.closeCollection")}
+                >
+                  <FolderX className="h-3 w-3" />
+                </button>
+              </>
             )}
           </span>
         )}
@@ -679,33 +798,9 @@ function TreeNodeRow({
                   {
                     label: t("sidebar.deleteCollection"),
                     icon: Trash2,
-                    onClick: async () => {
+                    onClick: () => {
                       closeContextMenu();
-                      try {
-                        const { ask } = await import("@tauri-apps/plugin-dialog");
-                        const confirmed = await ask(
-                          `Delete collection "${node.name}"? This will move the entire collection to trash.`,
-                          { title: t("confirmDelete.title"), kind: "warning" },
-                        );
-                        if (!confirmed) return;
-                        // Close the collection first so the file watcher and
-                        // refreshCollection don't race against the deletion.
-                        useCollectionStore.getState().closeCollection(collectionPath);
-                        const { deleteItem: deleteItemApi } = await import("@/lib/tauri-api");
-                        const trashPath = await deleteItemApi(node.path, collectionName);
-                        const { useUndoStore } = await import("@/stores/undo-store");
-                        useUndoStore.getState().pushUndo({
-                          type: "delete",
-                          path: node.path,
-                          collectionPath,
-                          collectionName,
-                          trashPath,
-                        });
-                      } catch (err) {
-                        import("@/stores/toast-store").then(({ useToastStore }) =>
-                          useToastStore.getState().showError(`Failed to delete collection: ${err}`),
-                        );
-                      }
+                      setDeleteCollectionConfirm(true);
                     },
                     danger: true,
                   },
@@ -723,6 +818,35 @@ function TreeNodeRow({
           onClose={() => setCookieSettingsPath(null)}
         />
       )}
+      <InputDialog
+        open={newRequestDialog}
+        onOpenChange={setNewRequestDialog}
+        title={t("sidebar.newRequest")}
+        placeholder={t("sidebar.requestNamePlaceholder", "Request name")}
+        showProtocol
+        onSubmit={handleCreateRequest}
+      />
+      <InputDialog
+        open={newFolderDialog}
+        onOpenChange={setNewFolderDialog}
+        title={t("sidebar.newFolder")}
+        placeholder={t("sidebar.folderNamePlaceholder", "Folder name")}
+        onSubmit={handleCreateFolder}
+      />
+      <ConfirmDialog
+        open={deleteConfirm}
+        onOpenChange={setDeleteConfirm}
+        title={t("confirmDelete.title")}
+        message={`${t("confirmDelete.message", `Delete "${node.name}"?`)}`}
+        onConfirm={confirmDelete}
+      />
+      <ConfirmDialog
+        open={deleteCollectionConfirm}
+        onOpenChange={setDeleteCollectionConfirm}
+        title={t("confirmDelete.title")}
+        message={`Delete collection "${node.name}"? This will move the entire collection to trash.`}
+        onConfirm={confirmDeleteCollection}
+      />
     </>
   );
 }
@@ -846,6 +970,158 @@ function ToggleRow({
   );
 }
 
+// ── Input dialog (replaces browser prompt()) ──
+
+type Protocol = "http" | "graphql" | "websocket" | "sse" | "grpc";
+
+function InputDialog({
+  open,
+  onOpenChange,
+  title,
+  placeholder,
+  showProtocol,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  placeholder: string;
+  showProtocol?: boolean;
+  onSubmit: (value: string, protocol?: Protocol) => void;
+}) {
+  const [value, setValue] = useState("");
+  const [protocol, setProtocol] = useState<Protocol>("http");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setValue("");
+      setProtocol("http");
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [open]);
+
+  const handleSubmit = () => {
+    if (!value.trim()) return;
+    onSubmit(value.trim(), showProtocol ? protocol : undefined);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-80 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--color-border)] bg-[var(--color-elevated)] p-5 shadow-2xl">
+          <Dialog.Title className="mb-4 text-sm font-semibold text-[var(--color-text-primary)]">
+            {title}
+          </Dialog.Title>
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSubmit();
+              if (e.key === "Escape") onOpenChange(false);
+            }}
+            placeholder={placeholder}
+            className="mb-3 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none transition-colors focus:border-[var(--color-accent)]/50"
+          />
+          {showProtocol && (
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {(
+                [
+                  { value: "http", label: "HTTP", color: "bg-emerald-500/15 text-emerald-400" },
+                  { value: "graphql", label: "GraphQL", color: "bg-violet-500/15 text-violet-400" },
+                  { value: "websocket", label: "WebSocket", color: "bg-cyan-500/15 text-cyan-400" },
+                  { value: "sse", label: "SSE", color: "bg-orange-500/15 text-orange-400" },
+                  { value: "grpc", label: "gRPC", color: "bg-green-500/15 text-green-400" },
+                ] as const
+              ).map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => setProtocol(p.value)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${
+                    protocol === p.value
+                      ? `${p.color} ring-1 ring-current`
+                      : "bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="rounded-lg px-4 py-1.5 text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!value.trim()}
+              className="rounded-lg bg-[var(--color-accent)] px-4 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+            >
+              Create
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+// ── Confirm dialog (replaces native Tauri ask()) ──
+
+function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  message,
+  confirmLabel,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-80 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--color-border)] bg-[var(--color-elevated)] p-5 shadow-2xl">
+          <Dialog.Title className="mb-2 text-sm font-semibold text-[var(--color-text-primary)]">
+            {title}
+          </Dialog.Title>
+          <p className="mb-5 text-sm text-[var(--color-text-secondary)]">{message}</p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="rounded-lg px-4 py-1.5 text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                onConfirm();
+                onOpenChange(false);
+              }}
+              className="rounded-lg bg-red-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+            >
+              {confirmLabel ?? "Delete"}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
 // ── Context menu ──
 
 function ContextMenu({
@@ -864,7 +1140,7 @@ function ContextMenu({
     danger?: boolean;
   }[];
 }) {
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 z-40" onMouseDown={onClose} />
@@ -885,6 +1161,7 @@ function ContextMenu({
           </button>
         ))}
       </div>
-    </>
+    </>,
+    document.body,
   );
 }

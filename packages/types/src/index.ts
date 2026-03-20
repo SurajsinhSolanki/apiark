@@ -181,6 +181,7 @@ export type CollectionNode =
       method: HttpMethod;
       path: string;
       isGraphql?: boolean;
+      protocol?: string;
     };
 
 // ── Collection Defaults ──
@@ -235,6 +236,7 @@ export interface RequestFile {
   name: string;
   method: HttpMethod;
   url: string;
+  protocol?: string;
   description?: string;
   headers: Record<string, string>;
   auth?: AuthConfig;

@@ -227,19 +227,60 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
   renameItem: async (path, newName, collectionPath) => {
     const oldName = path.split("/").pop()?.replace(".yaml", "") ?? "";
     const newPath = await renameItemApi(path, newName);
+    const isCollectionRename = path === collectionPath;
 
-    // Update any open tab pointing to the old file path
+    // Update any open tabs pointing to old paths
     const { useTabStore } = await import("@/stores/tab-store");
     const tabStore = useTabStore.getState();
-    const openTab = tabStore.tabs.find((t) => t.filePath === path);
-    if (openTab) {
+
+    if (isCollectionRename) {
+      // Renaming the collection root folder — update all tabs in this collection
       useTabStore.setState((state) => ({
-        tabs: state.tabs.map((t) =>
-          t.id === openTab.id
-            ? { ...t, filePath: newPath, name: newName, isDirty: false, conflictState: null }
-            : t,
-        ),
+        tabs: state.tabs.map((t) => {
+          if (t.collectionPath !== collectionPath) return t;
+          return {
+            ...t,
+            filePath: t.filePath ? t.filePath.replace(path, newPath) : t.filePath,
+            collectionPath: newPath,
+          };
+        }),
       }));
+      // Replace collection in-place with the new path instead of close+reopen,
+      // to avoid race conditions with persistence and file watchers
+      try {
+        await unwatchCollection(collectionPath).catch(() => {});
+        const tree = await openCollectionApi(newPath);
+        set((state) => ({
+          collections: state.collections.map((c) =>
+            c.type === "collection" && c.path === collectionPath ? tree : c,
+          ),
+          expandedPaths: new Set(
+            [...state.expandedPaths].map((p) =>
+              p === collectionPath ? newPath : p.startsWith(collectionPath + "/") ? newPath + p.slice(collectionPath.length) : p,
+            ),
+          ),
+        }));
+        watchCollection(newPath).catch(() => {});
+        // Persist the updated collections immediately
+        useTabStore.getState().persistTabs();
+      } catch (err) {
+        // If reopen fails, try the close+open approach
+        get().closeCollection(collectionPath);
+        await get().openCollection(newPath);
+      }
+    } else {
+      // Renaming a request or folder within a collection
+      const openTab = tabStore.tabs.find((t) => t.filePath === path);
+      if (openTab) {
+        useTabStore.setState((state) => ({
+          tabs: state.tabs.map((t) =>
+            t.id === openTab.id
+              ? { ...t, filePath: newPath, name: newName, isDirty: false, conflictState: null }
+              : t,
+          ),
+        }));
+      }
+      await get().refreshCollection(collectionPath);
     }
 
     useUndoStore.getState().pushUndo({
@@ -250,7 +291,6 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
       newName,
       collectionPath,
     });
-    await get().refreshCollection(collectionPath);
     return newPath;
   },
 

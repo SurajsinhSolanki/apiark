@@ -4,8 +4,10 @@ import { useTabStore, useActiveTab } from "@/stores/tab-store";
 import { KeyValueEditor } from "@/components/request/key-value-editor";
 import { ResponsePanel } from "@/components/response/response-panel";
 import { CodeEditor } from "@/components/ui/code-editor";
-import { Send, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import type { AuthConfig } from "@apiark/types";
+import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { UrlBar } from "@/components/request/url-bar";
 
 type GqlTab = "query" | "variables" | "headers" | "auth";
 
@@ -33,7 +35,6 @@ export function GraphQLView() {
   const [fetchingSchema, setFetchingSchema] = useState(false);
   const tab = useActiveTab();
   const {
-    setUrl,
     setHeaders,
     setAuth,
     setGraphQLQuery,
@@ -76,41 +77,20 @@ export function GraphQLView() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* URL Bar */}
-      <div className="flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
-        <span className="rounded bg-violet-500/20 px-2 py-0.5 text-xs font-bold text-violet-400">
-          GQL
-        </span>
-        <input
-          type="text"
-          value={tab.url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://api.example.com/graphql"
-          className="flex-1 bg-transparent text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dimmed)] outline-none"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-              send();
-            }
-          }}
-        />
-        <button
-          onClick={handleFetchSchema}
-          disabled={fetchingSchema || !tab.url.trim()}
-          className="flex items-center gap-1 rounded bg-[var(--color-elevated)] px-2.5 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] disabled:opacity-50"
-          title={t("graphql.fetchSchema")}
-        >
-          <Download className="h-3 w-3" />
-          {fetchingSchema ? t("graphql.fetchingSchema") : t("graphql.schema")}
-        </button>
-        <button
-          onClick={send}
-          disabled={tab.loading || !tab.url.trim()}
-          className="flex items-center gap-1.5 rounded bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Send className="h-3.5 w-3.5" />
-          {tab.loading ? t("request.sending") : t("request.send")}
-        </button>
-      </div>
+      <Breadcrumb />
+      <UrlBar
+        extraActions={
+          <button
+            onClick={handleFetchSchema}
+            disabled={fetchingSchema || !tab.url.trim()}
+            className="flex items-center gap-1 rounded-lg bg-[var(--color-elevated)] px-2.5 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-border)] disabled:opacity-50"
+            title={t("graphql.fetchSchema")}
+          >
+            <Download className="h-3 w-3" />
+            {fetchingSchema ? t("graphql.fetchingSchema") : t("graphql.schema")}
+          </button>
+        }
+      />
 
       {/* Split view */}
       <div className="flex flex-1 overflow-hidden">
